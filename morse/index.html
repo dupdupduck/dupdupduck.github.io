@@ -274,26 +274,34 @@ async function decodeBlob(blob, label) {
     }
     let peak = 0;
     for (let i = 0; i < env.length; i++) if (env[i] > peak) peak = env[i];
-    if (peak < 0.02) { setStatus('Không nghe thấy tín hiệu Morse trong file này — thử file rõ hơn hoặc ghi âm gần micro hơn.', true); return; }
+    if (peak < 0.02) { setStatus('Không nghe thấy tín hiệu Morse trong file này (âm lượng cao nhất đo được chỉ ' + peak.toFixed(3) + ') — thử phát to hơn hoặc ghi âm gần micro hơn.', true); return; }
     const thr = peak * 0.25;
-    const segs = [];
-    let inSeg = false, start = 0;
-    for (let i = 0; i < env.length; i++) {
-      if (!inSeg && env[i] >= thr) { inSeg = true; start = i; }
-      else if (inSeg && env[i] < thr) { inSeg = false; segs.push([start, i]); }
+    const findTones = (ratio) => {
+      const t = peak * ratio;
+      const segs = [];
+      let inSeg = false, start = 0;
+      for (let i = 0; i < env.length; i++) {
+        if (!inSeg && env[i] >= t) { inSeg = true; start = i; }
+        else if (inSeg && env[i] < t) { inSeg = false; segs.push([start, i]); }
+      }
+      if (inSeg) segs.push([start, env.length]);
+      // Merge segments split by tiny gaps (< 15ms), drop blips (< 20ms)
+      const merged = [];
+      for (const s of segs) {
+        if (merged.length && (s[0] - merged[merged.length - 1][1]) / sr < 0.015) {
+          merged[merged.length - 1][1] = s[1];
+        } else merged.push(s.slice());
+      }
+      return merged
+        .map((s) => ({ t0: s[0] / sr * 1000, t1: s[1] / sr * 1000, dur: (s[1] - s[0]) / sr * 1000 }))
+        .filter((x) => x.dur >= 20);
+    };
+    let tones = findTones(0.25);
+    if (!tones.length) tones = findTones(0.12); // thử lại ở ngưỡng thấp hơn cho bản ghi nhỏ tiếng
+    if (!tones.length) {
+      setStatus('Không tìm thấy tiếng bíp Morse nào (âm lượng cao nhất đo được chỉ ' + peak.toFixed(3) + '). Thử phát to hơn, ghi gần micro hơn, hoặc dùng file mẫu.', true);
+      return;
     }
-    if (inSeg) segs.push([start, env.length]);
-    // Merge segments split by tiny gaps (< 15ms), drop blips (< 20ms)
-    const merged = [];
-    for (const s of segs) {
-      if (merged.length && (s[0] - merged[merged.length - 1][1]) / sr < 0.015) {
-        merged[merged.length - 1][1] = s[1];
-      } else merged.push(s.slice());
-    }
-    const tones = merged
-      .map((s) => ({ t0: s[0] / sr * 1000, t1: s[1] / sr * 1000, dur: (s[1] - s[0]) / sr * 1000 }))
-      .filter((t) => t.dur >= 20);
-    if (!tones.length) { setStatus('Không tìm thấy tiếng bíp Morse nào — thử file khác.', true); return; }
     // Unit: shortest tone, stabilized by the median of short tones
     let unit = Math.min(...tones.map((t) => t.dur));
     const shorts = tones.filter((t) => t.dur < 2 * unit).map((t) => t.dur).sort((a, b) => a - b);
@@ -380,7 +388,9 @@ $('btn-rec').addEventListener('click', async () => {
     return;
   }
   try {
-    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
     recChunks = [];
     mediaRecorder = new MediaRecorder(recStream);
     mediaRecorder.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
