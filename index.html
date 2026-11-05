@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Caro Arena — Đấu trí với Rapfi AI</title>
+<title>Caro Arena — Đấu trí với Bot của anh</title>
 <style>
   :root {
     --bg: #0B0F1A;
@@ -64,15 +64,24 @@
     box-shadow: 0 0 0 1px var(--line), 0 0 42px rgba(0, 245, 255, 0.12), 0 0 42px rgba(255, 46, 99, 0.10);
   }
   canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; cursor: pointer; }
-  .controls {
+  .controls, .toolbar {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     justify-content: center;
-    margin-top: 14px;
+    align-items: center;
+    margin-top: 12px;
     width: min(560px, 94vw);
   }
-  .controls select, .controls button {
+  .ctl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .controls select, .controls input, .toolbar button {
     background: var(--panel2);
     color: var(--text);
     border: 1px solid var(--line);
@@ -82,14 +91,16 @@
     font-weight: 600;
     outline: none;
   }
-  .controls button { cursor: pointer; }
-  .controls button:hover { border-color: var(--cyan); }
-  .controls button.primary {
+  .controls input { width: 64px; text-align: center; }
+  .toolbar button { cursor: pointer; }
+  .toolbar button:hover { border-color: var(--cyan); }
+  .toolbar button:disabled { opacity: 0.45; cursor: default; }
+  .toolbar button.primary {
     background: linear-gradient(90deg, var(--pink), #D61C4E);
     border: none;
     color: #fff;
   }
-  .controls button.primary:hover { filter: brightness(1.15); }
+  .toolbar button.primary:hover { filter: brightness(1.15); }
   .info {
     display: flex;
     gap: 8px;
@@ -133,51 +144,64 @@
   .legend.x { background: var(--pink); }
   .legend.o { background: var(--cyan); }
   footer { margin-top: 16px; font-size: 12px; color: #55617A; text-align: center; }
-  footer a { color: #55617A; }
 </style>
 </head>
 <body>
 <header>
   <h1>CARO ARENA</h1>
-  <p>Đấu trí với <b>Rapfi AI</b> — engine cờ caro mạnh nhất thế giới</p>
+  <p>Đấu trí với <b>Bot của anh</b> — mạnh như engine cờ caro chuyên nghiệp</p>
 </header>
 
-<div id="status">Đang tải engine Rapfi…</div>
+<div id="status">Đang tải bot…</div>
 
 <div id="board-wrap"><canvas id="board"></canvas></div>
 
 <div class="controls">
-  <select id="difficulty" title="Độ khó">
-    <option value="500">Dễ — 0.5s</option>
-    <option value="1500" selected>Trung bình — 1.5s</option>
-    <option value="3500">Khó — 3.5s</option>
-    <option value="6000">Max — 6s</option>
-  </select>
-  <select id="side" title="Bạn cầm quân nào">
-    <option value="1" selected>Bạn đi trước (X)</option>
-    <option value="2">Bạn đi sau (O)</option>
-  </select>
-  <button id="btn-new" class="primary">Ván mới</button>
-  <button id="btn-undo">Hoàn tác</button>
+  <label class="ctl">Cấp độ
+    <select id="difficulty" title="Cấp độ bot">
+      <option value="500">Dễ — 0.5s</option>
+      <option value="1500" selected>Trung bình — 1.5s</option>
+      <option value="3500">Khó — 3.5s</option>
+      <option value="6000">Cao thủ — 6s</option>
+    </select>
+  </label>
+  <label class="ctl">Bàn cờ
+    <input id="boardsize" type="number" min="9" max="19" step="1" value="15" title="Cỡ bàn cờ (9–19)">
+  </label>
+  <label class="ctl">Bên
+    <select id="side" title="Bạn cầm quân nào">
+      <option value="1" selected>Bạn đi trước (X)</option>
+      <option value="2">Bạn đi sau (O)</option>
+    </select>
+  </label>
+</div>
+
+<div class="toolbar">
+  <button id="btn-new" class="primary">🔄 Ván mới</button>
+  <button id="btn-undo" title="Hoàn tác 1 quân vừa đánh">↩ Hoàn tác</button>
+  <button id="btn-redo" title="Đánh lại nước vừa hoàn tác">↪ Làm lại</button>
+  <button id="btn-hint" title="Bot gợi ý nước tốt nhất cho anh">💡 Gợi ý</button>
+  <button id="btn-stop" title="Dừng bot đang nghĩ, đánh lại nước vừa rồi">⏹ Dừng</button>
+  <button id="btn-flip" title="Xoay bàn cờ 180°">🔃 Lật bàn</button>
 </div>
 
 <div class="info">
   <span class="chip">Thắng <b id="score-w">0</b></span>
   <span class="chip">Thua <b id="score-l">0</b></span>
   <span class="chip">Hòa <b id="score-d">0</b></span>
-  <span class="chip"><span class="legend x"></span>Bạn <b id="you-are">X</b><span class="legend o"></span>Bot</span>
+  <span class="chip"><span class="legend x" id="legend-you"></span>Bạn <b id="you-are">X</b><span class="legend o" id="legend-bot"></span>Bot</span>
 </div>
 
 <div id="engine-stats"></div>
 <div id="moves"><b>Lịch sử nước đi</b><br><span id="moves-list">—</span></div>
 
-<footer>Caro Arena • Engine <a href="https://github.com/dhbloo/rapfi" target="_blank" rel="noopener">Rapfi</a> (GPL-3.0) • NNUE mix9svq • Chạy hoàn toàn trên trình duyệt của bạn</footer>
+<footer>Caro Arena • Luật tự do — 5 quân thẳng hàng là thắng • Chạy hoàn toàn trên trình duyệt của bạn</footer>
 
 <script>
 (function () {
   'use strict';
-  const SIZE = 15;
-  const HUMAN = 1, BOT = 2; // Gomocup: 1 = X, 2 = O
+  let SIZE = 15;
+  const COLS = 'ABCDEFGHIJKLMNOPQRS';
   const canvas = document.getElementById('board');
   const ctx = canvas.getContext('2d');
   const statusEl = document.getElementById('status');
@@ -185,22 +209,29 @@
   const movesListEl = document.getElementById('moves-list');
   const diffEl = document.getElementById('difficulty');
   const sideEl = document.getElementById('side');
+  const sizeEl = document.getElementById('boardsize');
 
   let board = [];
-  let moves = []; // [{x, y, p}]
+  let moves = [];       // [{x, y, p}] p: 1=X, 2=O
+  let redoStack = [];
   let gameOver = false;
   let botThinking = false;
-  let engineReady = false;
   let humanSide = 1;
+  let flip = false;
   let hover = null;
   let lastMove = null;
-  let worker = null;
+  let hint = null;
+  let pendingReply = null; // {kind:'botmove'|'discard'|'hint'}
   let score = { w: 0, l: 0, d: 0 };
   try {
     const s = JSON.parse(localStorage.getItem('caro-arena-score') || '{}');
     score = { w: s.w | 0, l: s.l | 0, d: s.d | 0 };
   } catch (e) {}
-  const COLS = 'ABCDEFGHIJKLMNO';
+  const botSide = () => 3 - humanSide;
+  const nextPlayer = () => (moves.length % 2 === 0 ? 1 : 2);
+  const isBotTurn = () => nextPlayer() === botSide();
+  const humanLabel = () => humanSide === 1 ? 'X (hồng)' : 'O (xanh)';
+  const clampSize = (n) => Math.max(9, Math.min(19, n || 15));
 
   function saveScore() {
     try { localStorage.setItem('caro-arena-score', JSON.stringify(score)); } catch (e) {}
@@ -208,10 +239,128 @@
     document.getElementById('score-l').textContent = score.l;
     document.getElementById('score-d').textContent = score.d;
   }
-
   function setStatus(text, cls) {
     statusEl.textContent = text;
     statusEl.className = cls || '';
+  }
+  function yourTurnStatus() {
+    setStatus('Lượt của bạn — đặt quân ' + humanLabel());
+  }
+
+  // ---------- Engine layer: worker first, main-thread fallback ----------
+  function locateFile(url) {
+    if (/^rapfi.*\.data$/.test(url)) url = 'rapfi.data';
+    return '/build/' + url;
+  }
+  const Engine = {
+    mode: 'worker',
+    worker: null,
+    mainInst: null,
+    ready: false,
+    failures: 0,
+    readyCb: null,
+    _wd: null,
+    init(cb) {
+      this.readyCb = cb;
+      this.ready = false;
+      this.failures = 0;
+      this.startWorker();
+    },
+    startWorker() {
+      try { if (this.worker) this.worker.terminate(); } catch (e) {}
+      this.worker = null;
+      this.mode = 'worker';
+      let w;
+      try { w = new Worker('engine-worker.js'); }
+      catch (e) { this.onWorkerFailed('không tạo được worker: ' + (e.message || e)); return; }
+      this.worker = w;
+      w.onmessage = (e) => this.handleMsg(e.data);
+      w.onerror = (e) => this.onWorkerFailed((e && e.message) || 'worker error');
+      w.postMessage({ type: 'init' });
+      clearTimeout(this._wd);
+      this._wd = setTimeout(() => { if (!this.ready) this.onWorkerFailed('quá 20 giây chưa tải xong'); }, 20000);
+    },
+    handleMsg(d) {
+      if (!d) return;
+      if (d.type === 'ready') {
+        clearTimeout(this._wd);
+        this.ready = true;
+        this.failures = 0;
+        if (this.readyCb) this.readyCb();
+      } else if (d.type === 'stdout') {
+        onEngineLine(d.data);
+      } else if (d.type === 'error' || d.type === 'worker-error' || d.type === 'exit') {
+        this.onWorkerFailed(d.type + ': ' + d.data);
+      }
+      // stderr/status: ignore
+    },
+    onWorkerFailed(msg) {
+      if (this.mode !== 'worker') return;
+      this.ready = false;
+      this.failures++;
+      if (this.worker) { try { this.worker.terminate(); } catch (e) {} }
+      this.worker = null;
+      if (this.failures >= 2) {
+        this.startMain();
+      } else {
+        setStatus('Bot gặp sự cố — đang tải lại…', 'thinking');
+        setTimeout(() => this.startWorker(), 600);
+      }
+    },
+    startMain() {
+      this.mode = 'main';
+      setStatus('Đang tải bot (chế độ dự phòng)…', 'thinking');
+      loadMainEngine().then((inst) => {
+        this.mainInst = inst;
+        this.ready = true;
+        if (this.readyCb) this.readyCb();
+      }).catch((err) => {
+        setStatus('Không tải được bot: ' + (err && err.message ? err.message : err) + ' — kiểm tra mạng rồi tải lại trang nhé.');
+      });
+    },
+    restart(cb) {
+      this.ready = false;
+      this.readyCb = cb;
+      if (this.mode === 'worker') {
+        this.startWorker();
+      } else {
+        try { if (this.mainInst && this.mainInst.terminate) this.mainInst.terminate(); } catch (e) {}
+        this.mainInst = null;
+        this.startMain();
+      }
+    },
+    send(cmd) {
+      if (!this.ready) return;
+      if (this.mode === 'worker') {
+        if (this.worker) this.worker.postMessage({ type: 'command', data: cmd });
+      } else if (this.mainInst) {
+        // search blocks the main thread: let the UI paint first
+        setTimeout(() => {
+          try { this.mainInst.sendCommand(cmd); } catch (e) {}
+        }, 30);
+      }
+    },
+  };
+  function loadMainEngine() {
+    return new Promise((resolve, reject) => {
+      const boot = () => {
+        const factory = window['Rapfi'];
+        if (typeof factory !== 'function') return reject(new Error('không thấy engine'));
+        factory({
+          locateFile: locateFile,
+          onReceiveStdout: (o) => onEngineLine(o),
+          onReceiveStderr: () => {},
+          onExit: () => {},
+          setStatus: () => {},
+        }).then(resolve).catch(reject);
+      };
+      if (typeof window['Rapfi'] === 'function') return boot();
+      const s = document.createElement('script');
+      s.src = '/build/rapfi-single-simd128.js';
+      s.onload = boot;
+      s.onerror = () => reject(new Error('không tải được file engine'));
+      document.head.appendChild(s);
+    });
   }
 
   // ---------- Board drawing ----------
@@ -224,6 +373,8 @@
     draw();
   }
   function cell() { return canvas.getBoundingClientRect().width / (SIZE + 1); }
+  function toDisplay(x, y) { return flip ? { x: SIZE - 1 - x, y: SIZE - 1 - y } : { x: x, y: y }; }
+  function fromDisplay(dx, dy) { return flip ? { x: SIZE - 1 - dx, y: SIZE - 1 - dy } : { x: dx, y: dy }; }
   function draw() {
     const rect = canvas.getBoundingClientRect();
     const W = rect.width, c = cell(), pad = c;
@@ -241,36 +392,56 @@
       ctx.moveTo(pad, pad + i * c); ctx.lineTo(pad + (SIZE - 1) * c, pad + i * c);
     }
     ctx.stroke();
+    // star points
+    const sp = [3, SIZE - 4], cpt = Math.floor((SIZE - 1) / 2);
     ctx.fillStyle = '#3A4A6E';
-    [[3, 3], [3, 11], [11, 3], [11, 11], [7, 7]].forEach(function (pt) {
+    [[sp[0], sp[0]], [sp[0], sp[1]], [sp[1], sp[0]], [sp[1], sp[1]], [cpt, cpt]].forEach(function (pt) {
       ctx.beginPath(); ctx.arc(pad + pt[0] * c, pad + pt[1] * c, 3.5, 0, Math.PI * 2); ctx.fill();
     });
+    // coords (flip-aware labels)
     ctx.fillStyle = '#5A6B8F';
     ctx.font = Math.max(9, c * 0.32) + 'px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (let i = 0; i < SIZE; i++) {
-      ctx.fillText(COLS[i], pad + i * c, pad - c * 0.62);
-      ctx.fillText(String(i + 1), pad - c * 0.62, pad + i * c);
+      const bi = flip ? SIZE - 1 - i : i;
+      ctx.fillText(COLS[bi], pad + i * c, pad - c * 0.62);
+      ctx.fillText(String(bi + 1), pad - c * 0.62, pad + i * c);
     }
+    // hover preview
     if (hover && !gameOver && !botThinking && board[hover.y][hover.x] === 0) {
       ctx.globalAlpha = 0.45;
       drawStone(hover.x, hover.y, humanSide);
       ctx.globalAlpha = 1;
     }
+    // stones
     for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
       if (board[y][x] !== 0) drawStone(x, y, board[y][x]);
     }
+    // hint ring
+    if (hint) {
+      const d = toDisplay(hint.x, hint.y);
+      ctx.strokeStyle = '#FBFF12';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.arc(pad + d.x * c, pad + d.y * c, c * 0.42, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // last move marker
     if (lastMove) {
+      const d = toDisplay(lastMove.x, lastMove.y);
       ctx.strokeStyle = '#FBFF12';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(pad + lastMove.x * c, pad + lastMove.y * c, c * 0.36, 0, Math.PI * 2);
+      ctx.arc(pad + d.x * c, pad + d.y * c, c * 0.36, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
   function drawStone(x, y, p) {
     const c = cell(), pad = c;
-    const cx = pad + x * c, cy = pad + y * c, r = c * 0.44;
+    const d = toDisplay(x, y);
+    const cx = pad + d.x * c, cy = pad + d.y * c, r = c * 0.44;
     const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, r * 0.1, cx, cy, r);
     if (p === 1) { g.addColorStop(0, '#FF7AA8'); g.addColorStop(0.55, '#FF2E63'); g.addColorStop(1, '#B3123F'); }
     else { g.addColorStop(0, '#B8FBFF'); g.addColorStop(0.55, '#00F5FF'); g.addColorStop(1, '#0093A6'); }
@@ -285,9 +456,9 @@
     const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
     const py = (ev.touches ? ev.touches[0].clientY : ev.clientY) - rect.top;
     const c = cell(), pad = c;
-    const x = Math.round((px - pad) / c), y = Math.round((py - pad) / c);
-    if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) return null;
-    return { x: x, y: y };
+    const dx = Math.round((px - pad) / c), dy = Math.round((py - pad) / c);
+    if (dx < 0 || dx >= SIZE || dy < 0 || dy >= SIZE) return null;
+    return fromDisplay(dx, dy);
   }
 
   // ---------- Game logic ----------
@@ -296,7 +467,10 @@
     moves = [];
     gameOver = false;
     botThinking = false;
+    pendingReply = null;
     lastMove = null;
+    hint = null;
+    hover = null;
     movesListEl.textContent = '—';
     statsEl.textContent = '';
     draw();
@@ -331,52 +505,41 @@
   function endGame(result) {
     gameOver = true;
     botThinking = false;
-    if (result === 'win') { score.w++; setStatus('Bạn thắng rồi! Rapfi cũng có ngày thua 😎', 'win'); }
+    if (result === 'win') { score.w++; setStatus('Bạn thắng rồi! Bot cũng có ngày thua 😎', 'win'); }
     else if (result === 'lose') { score.l++; setStatus('Bot thắng. Phục thù ván nữa không anh?', 'lose'); }
     else { score.d++; setStatus('Hòa! Căng như dây đàn.', 'draw'); }
     saveScore();
   }
 
-  // ---------- Engine ----------
-  function sendCmd(cmd) { if (worker) worker.postMessage({ type: 'command', data: cmd }); }
-  function startWorker() {
-    if (worker) { try { worker.terminate(); } catch (e) {} }
-    worker = new Worker('engine-worker.js');
-    engineReady = false;
-    worker.onmessage = function (e) {
-      const d = e.data;
-      if (d.type === 'ready') {
-        engineReady = true;
-        sendCmd('START 15');
-        sendCmd('INFO timeout_turn ' + diffEl.value);
-        sendCmd('INFO timeout_match 100000');
-        if (humanSide === 2) {
-          setStatus('Bot đi trước…', 'thinking');
-          botThinking = true;
-          sendCmd('BEGIN');
-        } else {
-          setStatus('Lượt của bạn — đặt quân X (hồng)');
-        }
-      } else if (d.type === 'stdout') {
-        onEngineLine(d.data);
-      } else if (d.type === 'error') {
-        setStatus('Lỗi tải engine: ' + d.data);
-      }
-    };
-    worker.onerror = function (err) { setStatus('Lỗi worker: ' + (err.message || err)); };
-    worker.postMessage({ type: 'init' });
-  }
+  // ---------- Engine protocol ----------
   function onEngineLine(line) {
     if (!line) return;
     const m = line.match(/^(\d+),(\d+)$/);
     if (m) {
       const x = parseInt(m[1], 10), y = parseInt(m[2], 10);
+      const pr = pendingReply; pendingReply = null;
+      if (!pr) return;
+      if (pr.kind === 'discard') {
+        // engine replied to a no-move sync: take it back so its board matches ours
+        Engine.send('TAKEBACK ' + x + ',' + y);
+        botThinking = false;
+        yourTurnStatus();
+        return;
+      }
+      if (pr.kind === 'hint') {
+        hint = { x: x, y: y };
+        Engine.send('TAKEBACK ' + x + ',' + y);
+        setStatus('Gợi ý: đánh ' + COLS[x] + (y + 1) + ' — ô vàng đứt nét trên bàn');
+        draw();
+        return;
+      }
+      // botmove
       botThinking = false;
       if (board[y] && board[y][x] === 0) {
-        const won = placeStone(x, y, BOT);
+        const won = placeStone(x, y, botSide());
         if (won) { endGame('lose'); return; }
         if (moves.length >= SIZE * SIZE) { endGame('draw'); return; }
-        setStatus('Lượt của bạn — đặt quân X (hồng)');
+        yourTurnStatus();
       }
       return;
     }
@@ -387,34 +550,54 @@
       else if (dm) statsEl.innerHTML = 'Bot đang nghĩ… độ sâu <b>' + dm[1] + '</b> • đánh giá <b>' + dm[2] + '</b>';
     }
   }
-  function botMoveAfterHuman(x, y) {
-    botThinking = true;
-    setStatus('Bot đang nghĩ…', 'thinking');
-    statsEl.textContent = '';
-    sendCmd('TURN ' + x + ',' + y);
-  }
-  function replayIntoEngine(keepMoves) {
-    startWorker();
-    const waitReady = setInterval(function () {
-      if (!engineReady) return;
-      clearInterval(waitReady);
-      if (keepMoves.length === 0) {
-        if (humanSide === 2) { botThinking = true; setStatus('Bot đi trước…', 'thinking'); sendCmd('BEGIN'); }
-        else setStatus('Lượt của bạn — đặt quân X (hồng)');
+  // (Re)start the engine and bring it to the current position.
+  function setupEngine() {
+    const doSetup = () => {
+      Engine.send('START ' + SIZE);
+      Engine.send('INFO timeout_turn ' + diffEl.value);
+      Engine.send('INFO timeout_match 100000');
+      if (moves.length === 0) {
+        if (humanSide === 2) {
+          pendingReply = { kind: 'botmove' };
+          botThinking = true;
+          setStatus('Bot đi trước…', 'thinking');
+          Engine.send('BEGIN');
+        } else {
+          yourTurnStatus();
+        }
         return;
       }
-      botThinking = true;
-      setStatus('Bot đang nghĩ…', 'thinking');
-      sendCmd('BOARD');
-      keepMoves.forEach(function (mv) { sendCmd(mv.x + ',' + mv.y + ',' + mv.p); });
-      sendCmd('DONE');
-    }, 100);
+      // Sync position with ONE multi-line BOARD command (must not be split:
+      // the engine reads the whole block in a single call).
+      const lines = ['BOARD'];
+      moves.forEach(function (mv) { lines.push(mv.x + ',' + mv.y + ',' + mv.p); });
+      lines.push('DONE');
+      if (isBotTurn()) {
+        pendingReply = { kind: 'botmove' };
+        botThinking = true;
+        setStatus('Bot đang nghĩ…', 'thinking');
+      } else {
+        pendingReply = { kind: 'discard' };
+        botThinking = false;
+      }
+      Engine.send(lines.join('\n'));
+    };
+    Engine.restart(doSetup);
+  }
+  function botMoveAfterHuman(x, y) {
+    botThinking = true;
+    pendingReply = { kind: 'botmove' };
+    setStatus('Bot đang nghĩ…', 'thinking');
+    statsEl.textContent = '';
+    Engine.send('TURN ' + x + ',' + y);
   }
 
   // ---------- Events ----------
   function humanPlay(x, y) {
-    if (gameOver || botThinking || !engineReady) return;
+    if (gameOver || botThinking || !Engine.ready) return;
     if (board[y][x] !== 0) return;
+    hint = null;
+    redoStack = [];
     const won = placeStone(x, y, humanSide);
     if (won) { endGame('win'); return; }
     if (moves.length >= SIZE * SIZE) { endGame('draw'); return; }
@@ -430,40 +613,107 @@
   });
   canvas.addEventListener('mouseleave', function () { hover = null; draw(); });
 
-  document.getElementById('btn-new').addEventListener('click', function () {
-    humanSide = parseInt(sideEl.value, 10);
+  function applySideUI() {
     document.getElementById('you-are').textContent = humanSide === 1 ? 'X' : 'O';
+    document.getElementById('legend-you').className = 'legend ' + (humanSide === 1 ? 'x' : 'o');
+    document.getElementById('legend-bot').className = 'legend ' + (humanSide === 1 ? 'o' : 'x');
+  }
+  function newGame() {
+    humanSide = parseInt(sideEl.value, 10);
+    SIZE = clampSize(parseInt(sizeEl.value, 10) || 15);
+    sizeEl.value = SIZE;
+    applySideUI();
     newBoard();
-    setStatus('Đang tải engine Rapfi…');
-    startWorker();
-  });
+    redoStack = [];
+    hint = null;
+    setStatus('Đang tải bot…');
+    setupEngine();
+  }
+  document.getElementById('btn-new').addEventListener('click', newGame);
   document.getElementById('btn-undo').addEventListener('click', function () {
     if (botThinking || moves.length === 0) return;
-    const keep = moves.slice(0, moves.length >= 2 ? moves.length - 2 : 0);
-    newBoard();
-    keep.forEach(function (mv) { board[mv.y][mv.x] = mv.p; moves.push(mv); });
-    if (moves.length) lastMove = moves[moves.length - 1];
+    // Hoàn tác đúng 1 quân vừa đánh
+    const mv = moves.pop();
+    board[mv.y][mv.x] = 0;
+    redoStack.push(mv);
+    lastMove = moves.length ? moves[moves.length - 1] : null;
+    hint = null;
+    gameOver = false;
     renderMoves();
     draw();
-    setStatus('Đang tải lại engine…');
-    replayIntoEngine(keep);
+    setStatus('Đang đồng bộ bot…');
+    setupEngine();
+  });
+  document.getElementById('btn-redo').addEventListener('click', function () {
+    if (botThinking || redoStack.length === 0) return;
+    const mv = redoStack.pop();
+    board[mv.y][mv.x] = mv.p;
+    moves.push(mv);
+    lastMove = mv;
+    hint = null;
+    gameOver = false;
+    renderMoves();
+    draw();
+    setStatus('Đang đồng bộ bot…');
+    setupEngine();
+  });
+  document.getElementById('btn-hint').addEventListener('click', function () {
+    if (botThinking || gameOver || !Engine.ready) return;
+    if (moves.length >= SIZE * SIZE) return;
+    hint = null;
+    pendingReply = { kind: 'hint' };
+    const lines = ['BOARD'];
+    moves.forEach(function (mv) { lines.push(mv.x + ',' + mv.y + ',' + mv.p); });
+    lines.push('DONE');
+    setStatus('Bot đang tính nước gợi ý…', 'thinking');
+    Engine.send(lines.join('\n'));
+  });
+  document.getElementById('btn-stop').addEventListener('click', function () {
+    if (!botThinking) return;
+    // Dừng bot đang nghĩ, hủy nước vừa đánh để đánh lại
+    botThinking = false;
+    pendingReply = null;
+    if (moves.length) {
+      const mv = moves.pop();
+      board[mv.y][mv.x] = 0;
+      redoStack.push(mv);
+      lastMove = moves.length ? moves[moves.length - 1] : null;
+      hint = null;
+      renderMoves();
+      draw();
+    }
+    setStatus('Đã dừng bot — anh đánh lại nước vừa rồi');
+    setupEngine();
+  });
+  document.getElementById('btn-flip').addEventListener('click', function () {
+    flip = !flip;
+    draw();
   });
   diffEl.addEventListener('change', function () {
-    if (engineReady) sendCmd('INFO timeout_turn ' + diffEl.value);
+    if (Engine.ready) Engine.send('INFO timeout_turn ' + diffEl.value);
   });
-  sideEl.addEventListener('change', function () {
-    humanSide = parseInt(sideEl.value, 10);
-    document.getElementById('you-are').textContent = humanSide === 1 ? 'X' : 'O';
+  sideEl.addEventListener('change', newGame);
+  sizeEl.addEventListener('change', function () {
+    SIZE = clampSize(parseInt(sizeEl.value, 10) || 15);
+    sizeEl.value = SIZE;
+    newGame();
   });
   window.addEventListener('resize', setupCanvas);
 
   // ---------- Boot ----------
   saveScore();
-  document.getElementById('you-are').textContent = 'X';
+  applySideUI();
   newBoard();
   setupCanvas();
-  startWorker();
+  setStatus('Đang tải bot…');
+  Engine.init(function () {
+    Engine.send('START ' + SIZE);
+    Engine.send('INFO timeout_turn ' + diffEl.value);
+    Engine.send('INFO timeout_match 100000');
+    yourTurnStatus();
+  });
 })();
 </script>
 </body>
 </html>
+<!-- Engine: Rapfi (GPL-3.0) — https://github.com/dhbloo/rapfi -->
