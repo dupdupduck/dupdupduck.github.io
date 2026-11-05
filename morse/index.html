@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giải Mã Morse — Âm thanh thành chữ</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0B0F1A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0F1A; --panel: #131A2A; --panel2: #1A2338;
+    --pink: #FF2E63; --cyan: #00F5FF; --yellow: #FBFF12;
+    --text: #E8ECF4; --muted: #8A94A8; --line: rgba(255,255,255,.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: 'Be Vietnam Pro', system-ui, sans-serif; min-height: 100vh; padding: 20px 16px 40px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 22px; }
+  header .logo { font-size: 40px; margin-bottom: 6px; }
+  header h1 { font-size: 26px; font-weight: 900; }
+  header h1 b { color: var(--cyan); }
+  header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+  .card .hint { color: var(--muted); font-size: 13px; margin-bottom: 14px; line-height: 1.5; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button, .file-btn {
+    font-family: inherit; font-size: 14px; font-weight: 700; color: #fff;
+    background: linear-gradient(90deg, var(--pink), #D61C4E);
+    border: none; border-radius: 12px; padding: 12px 18px; cursor: pointer;
+    transition: filter .12s, transform .12s;
+  }
+  button:hover, .file-btn:hover { filter: brightness(1.12); }
+  button:disabled { opacity: .45; cursor: default; filter: none; }
+  button.ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--line); }
+  button.cyan { background: linear-gradient(90deg, #00B8C4, #007A8A); }
+  button.rec { background: linear-gradient(90deg, #E5484D, #B3123F); }
+  button.rec.live { animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { filter: brightness(1.4); } }
+  input[type="file"] { display: none; }
+  input[type="text"] {
+    flex: 1; min-width: 200px; font-family: inherit; font-size: 15px; color: var(--text);
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--cyan); }
+  .status { margin-top: 12px; font-size: 14px; color: var(--muted); min-height: 20px; }
+  .status.err { color: #FF7A7A; }
+  .result { display: none; margin-top: 16px; }
+  .result.show { display: block; }
+  .result .label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .decoded {
+    font-size: 30px; font-weight: 900; letter-spacing: 2px; color: var(--yellow);
+    background: var(--panel2); border-radius: 12px; padding: 14px 16px; word-break: break-word; min-height: 60px;
+  }
+  .morse-out {
+    font-family: ui-monospace, 'Courier New', monospace; font-size: 15px; color: var(--cyan);
+    background: var(--panel2); border-radius: 12px; padding: 12px 14px; word-break: break-all; line-height: 1.7;
+  }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .meta span { font-size: 12px; color: var(--muted); background: var(--panel2); border-radius: 999px; padding: 6px 12px; }
+  .meta span b { color: var(--text); }
+  canvas { width: 100%; height: 120px; background: var(--panel2); border-radius: 12px; margin-top: 14px; display: block; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 8px; line-height: 1.6; }
+  footer a { color: var(--cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">📻</div>
+    <h1>Giải Mã <b>Morse</b></h1>
+    <p>Âm thanh mã Morse → chữ • Ghi âm, tải file hoặc thử file mẫu</p>
+  </header>
+
+  <div class="card">
+    <h2>🎧 Giải mã âm thanh</h2>
+    <p class="hint">Tải file âm thanh Morse (wav, mp3, m4a…) lên, hoặc ghi âm trực tiếp bằng micro. Trang tự tìm tần số tiếng bíp, đo chấm / gạch rồi dịch ra chữ.</p>
+    <div class="row">
+      <label class="file-btn" for="file-input">📁 Chọn file âm thanh</label>
+      <input type="file" id="file-input" accept="audio/*">
+      <button class="ghost" id="btn-sample">▶️ Thử file mẫu “KIET”</button>
+      <button class="rec" id="btn-rec">🎙️ Ghi âm</button>
+    </div>
+    <div class="status" id="decode-status">Chưa có âm thanh nào.</div>
+    <div class="result" id="decode-result">
+      <div class="label">Kết quả giải mã</div>
+      <div class="decoded" id="decoded-text"></div>
+      <div class="label" style="margin-top:14px">Mã Morse nhận được</div>
+      <div class="morse-out" id="decoded-morse"></div>
+      <canvas id="timing-canvas" width="720" height="120"></canvas>
+      <div class="meta" id="decode-meta"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔊 Tạo âm thanh Morse</h2>
+    <p class="hint">Gõ chữ → nghe tiếng bíp Morse, hoặc tải file WAV về rồi quay lên phần giải mã để kiểm chứng.</p>
+    <div class="row">
+      <input type="text" id="encode-input" value="KIET" maxlength="120" placeholder="Gõ chữ cần mã hóa…">
+      <button class="cyan" id="btn-play">▶️ Phát</button>
+      <button class="ghost" id="btn-download">⬇️ Tải WAV</button>
+    </div>
+    <div class="result" id="encode-result">
+      <div class="label" style="margin-top:14px">Mã Morse</div>
+      <div class="morse-out" id="encode-morse"></div>
+    </div>
+  </div>
+
+  <footer>
+    Chạy hoàn toàn trên trình duyệt của bạn — file âm thanh không gửi lên máy chủ.<br>
+    Cùng họ với <a href="/">Caro Arena</a> • Chấm = 1 đơn vị, gạch = 3, nghỉ giữa chữ = 3, giữa từ = 7.
+  </footer>
+</div>
+
+<script>
+'use strict';
+// ---------- Morse tables ----------
+const MORSE = {
+  A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',
+  K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',
+  U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',
+  '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
+  '6':'-....','7':'--...','8':'---..','9':'----.',
+  '.':'.-.-.-',',':'--..--','?':'..--..',"'":'.----.','!':'-.-.--','/':'-..-.',
+  '(':'-.--.',')':'-.--.-','&':'.-...',':':'---...',';':'-.-.-.','=':'-...-',
+  '+':'.-.-.','-':'-....-','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.'
+};
+const REVERSE = {};
+for (const k in MORSE) REVERSE[MORSE[k]] = k;
+
+const $ = (id) => document.getElementById(id);
+const decodeStatus = $('decode-status'), decodeResult = $('decode-result');
+const decodedText = $('decoded-text'), decodedMorse = $('decoded-morse'), decodeMeta = $('decode-meta');
+const canvas = $('timing-canvas'), ctx = canvas.getContext('2d');
+
+function setStatus(msg, isErr) {
+  decodeStatus.textContent = msg;
+  decodeStatus.className = 'status' + (isErr ? ' err' : '');
+}
+
+// ---------- Encoder: text -> Morse events ----------
+function textToEvents(text) {
+  const events = []; // [on, units]
+  const words = text.toUpperCase().split(' ');
+  words.forEach((word, wi) => {
+    if (wi > 0) events.push([false, 7]);
+    [...word].forEach((ch, li) => {
+      const code = MORSE[ch];
+      if (!code) return;
+      if (li > 0) events.push([false, 3]);
+      [...code].forEach((sym, ei) => {
+        if (ei > 0) events.push([false, 1]);
+        events.push([true, sym === '-' ? 3 : 1]);
+      });
+    });
+  });
+  return events;
+}
+function textToMorse(text) {
+  return text.toUpperCase().split(' ').map((w) =>
+    [...w].map((ch) => MORSE[ch] || '').filter(Boolean).join(' ')
+  ).join('   /   ');
+}
+
+// ---------- Play Morse via Web Audio ----------
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+$('btn-play').addEventListener('click', () => {
+  const text = $('encode-input').value.trim();
+  if (!text) return;
+  $('encode-morse').textContent = textToMorse(text);
+  $('encode-result').classList.add('show');
+  const actx = getCtx();
+  const unit = 0.1, freq = 700;
+  let t = actx.currentTime + 0.05;
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.type = 'sine'; osc.frequency.value = freq;
+  gain.gain.value = 0;
+  osc.connect(gain); gain.connect(actx.destination);
+  osc.start(t);
+  textToEvents(text).forEach(([on, units]) => {
+    const dur = units * unit;
+    if (on) {
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
+      gain.gain.setValueAtTime(0.5, t + dur - 0.005);
+      gain.gain.linearRampToValueAtTime(0.0001, t + dur);
+    }
+    t += dur;
+  });
+  osc.stop(t + 0.05);
+});
+
+// ---------- Download WAV ----------
+function encodeWav(text, unitMs, freq, sampleRate) {
+  const unit = unitMs / 1000;
+  const events = textToEvents(text);
+  const totalSamples = Math.round(events.reduce((s, [, u]) => s + u * unit, 0) * sampleRate);
+  const data = new Int16Array(totalSamples);
+  let pos = 0;
+  const fade = Math.round(sampleRate * 0.005);
+  events.forEach(([on, units]) => {
+    const n = Math.round(units * unit * sampleRate);
+    for (let i = 0; i < n && pos < totalSamples; i++, pos++) {
+      if (!on) { data[pos] = 0; continue; }
+      let env = 1;
+      if (i < fade) env = i / fade;
+      else if (i >= n - fade) env = (n - i) / fade;
+      data[pos] = Math.round(32767 * 0.8 * env * Math.sin(2 * Math.PI * freq * i / sampleRate));
+    }
+  });
+  const buf = new ArrayBuffer(44 + data.length * 2);
+  const v = new DataView(buf);
+  const wstr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  wstr(0, 'RIFF'); v.setUint32(4, 36 + data.length * 2, true); wstr(8, 'WAVE');
+  wstr(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true); v.setUint32(24, sampleRate, true);
+  v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  wstr(36, 'data'); v.setUint32(40, data.length * 2, true);
+  for (let i = 0; i < data.length; i++) v.setInt16(44 + i * 2, data[i], true);
+  return new Blob([buf], { type: 'audio/wav' });
+}
+$('btn-download').addEventListener('click', () => {
+  const text = $('encode-input').value.trim();
+  if (!text) return;
+  $('encode-morse').textContent = textToMorse(text);
+  $('encode-result').classList.add('show');
+  const blob = encodeWav(text, 100, 700, 22050);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'morse-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.wav';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+// ---------- Decoder: audio -> text ----------
+function estimateFreq(samples, sr, start, end) {
+  let crossings = 0, prev = samples[start] >= 0;
+  for (let i = start + 1; i < end; i++) {
+    const cur = samples[i] >= 0;
+    if (cur !== prev) crossings++;
+    prev = cur;
+  }
+  const dur = (end - start) / sr;
+  return dur > 0 ? Math.round(crossings / (2 * dur)) : 0;
+}
+
+async function decodeBlob(blob, label) {
+  setStatus('Đang giải mã ' + label + '…');
+  decodeResult.classList.remove('show');
+  try {
+    const ab = await blob.arrayBuffer();
+    const actx = getCtx();
+    const audioBuffer = await actx.decodeAudioData(ab);
+    const sr = audioBuffer.sampleRate;
+    const ch = audioBuffer.getChannelData(0);
+    // Envelope: |x| smoothed over ~4ms
+    const win = Math.max(1, Math.round(sr * 0.004));
+    const env = new Float32Array(ch.length);
+    let sum = 0;
+    for (let i = 0; i < ch.length; i++) {
+      const a = Math.abs(ch[i]);
+      sum += a;
+      if (i >= win) sum -= Math.abs(ch[i - win]);
+      env[i] = sum / Math.min(i + 1, win);
+    }
+    let peak = 0;
+    for (let i = 0; i < env.length; i++) if (env[i] > peak) peak = env[i];
+    if (peak < 0.02) { setStatus('Không nghe thấy tín hiệu Morse trong file này — thử file rõ hơn hoặc ghi âm gần micro hơn.', true); return; }
+    const thr = peak * 0.25;
+    const segs = [];
+    let inSeg = false, start = 0;
+    for (let i = 0; i < env.length; i++) {
+      if (!inSeg && env[i] >= thr) { inSeg = true; start = i; }
+      else if (inSeg && env[i] < thr) { inSeg = false; segs.push([start, i]); }
+    }
+    if (inSeg) segs.push([start, env.length]);
+    // Merge segments split by tiny gaps (< 15ms), drop blips (< 20ms)
+    const merged = [];
+    for (const s of segs) {
+      if (merged.length && (s[0] - merged[merged.length - 1][1]) / sr < 0.015) {
+        merged[merged.length - 1][1] = s[1];
+      } else merged.push(s.slice());
+    }
+    const tones = merged
+      .map((s) => ({ t0: s[0] / sr * 1000, t1: s[1] / sr * 1000, dur: (s[1] - s[0]) / sr * 1000 }))
+      .filter((t) => t.dur >= 20);
+    if (!tones.length) { setStatus('Không tìm thấy tiếng bíp Morse nào — thử file khác.', true); return; }
+    // Unit: shortest tone, stabilized by the median of short tones
+    let unit = Math.min(...tones.map((t) => t.dur));
+    const shorts = tones.filter((t) => t.dur < 2 * unit).map((t) => t.dur).sort((a, b) => a - b);
+    if (shorts.length) unit = shorts[Math.floor(shorts.length / 2)];
+    // Classify tones and gaps
+    let morse = '', text = '', cur = '';
+    let longest = tones[0];
+    tones.forEach((t, i) => {
+      if (t.dur > longest.dur) longest = t;
+      cur += (t.dur < 2 * unit) ? '.' : '-';
+      if (i === tones.length - 1) return;
+      const gap = tones[i + 1].t0 - t.t1;
+      if (gap < 2 * unit) return;                    // trong cùng 1 chữ
+      morse += cur + ' ';
+      text += (REVERSE[cur] || '�');
+      cur = '';
+      if (gap >= 5 * unit) { morse += '/ '; text += ' '; } // khoảng cách giữa các từ
+    });
+    if (cur) { morse += cur; text += (REVERSE[cur] || '�'); }
+    const freq = estimateFreq(ch, sr, Math.round(longest.t0 / 1000 * sr), Math.round(longest.t1 / 1000 * sr));
+    decodedText.textContent = text || '(không dịch được)';
+    decodedMorse.textContent = morse.trim();
+    decodeMeta.innerHTML =
+      '<span>Tần số bíp: <b>~' + freq + ' Hz</b></span>' +
+      '<span>Đơn vị chấm: <b>~' + Math.round(unit) + ' ms</b></span>' +
+      '<span>Số ký tự: <b>' + text.replace(/ /g, '').length + '</b></span>' +
+      '<span>Thời lượng: <b>' + (ch.length / sr).toFixed(1) + ' s</b></span>';
+    drawTiming(tones, unit, text, morse);
+    decodeResult.classList.add('show');
+    setStatus('Giải mã xong — ' + label + '.');
+  } catch (e) {
+    setStatus('Không đọc được file âm thanh này (' + (e && e.message ? e.message : 'định dạng không hỗ trợ') + '). Thử file wav/mp3 khác nhé.', true);
+  }
+}
+
+function drawTiming(tones, unit, text, morse) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#1A2338';
+  ctx.fillRect(0, 0, W, H);
+  if (!tones.length) return;
+  const tEnd = tones[tones.length - 1].t1;
+  const px = (ms) => 10 + (ms / tEnd) * (W - 20);
+  const midY = H / 2 - 8;
+  // gaps (baseline)
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(px(0), midY); ctx.lineTo(px(tEnd), midY); ctx.stroke();
+  // tone bars
+  tones.forEach((t) => {
+    const isDash = t.dur >= 2 * unit;
+    ctx.fillStyle = isDash ? '#FF2E63' : '#00F5FF';
+    const x = px(t.t0), w = Math.max(2, px(t.t1) - x);
+    ctx.fillRect(x, midY - 26, w, 52);
+  });
+  // decoded text under the diagram
+  ctx.fillStyle = '#8A94A8';
+  ctx.font = '12px "Be Vietnam Pro", sans-serif';
+  ctx.fillText('Hồng = gạch  •  Xanh = chấm  •  ' + morse.trim(), 10, H - 12);
+}
+
+// ---------- Inputs: file / sample / mic ----------
+$('file-input').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) decodeBlob(f, '“' + f.name + '”');
+  e.target.value = '';
+});
+$('btn-sample').addEventListener('click', async () => {
+  setStatus('Đang tải file mẫu…');
+  try {
+    const res = await fetch('sample-kiet.wav');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    decodeBlob(await res.blob(), 'file mẫu “KIET”');
+  } catch (e) {
+    setStatus('Không tải được file mẫu — kiểm tra mạng rồi thử lại.', true);
+  }
+});
+
+let mediaRecorder = null, recChunks = [], recStream = null;
+$('btn-rec').addEventListener('click', async () => {
+  const btn = $('btn-rec');
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    return;
+  }
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recChunks = [];
+    mediaRecorder = new MediaRecorder(recStream);
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      recStream.getTracks().forEach((t) => t.stop());
+      btn.textContent = '🎙️ Ghi âm';
+      btn.classList.remove('live');
+      const blob = new Blob(recChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      decodeBlob(blob, 'bản ghi âm');
+    };
+    mediaRecorder.start();
+    btn.textContent = '⏹ Dừng & giải mã';
+    btn.classList.add('live');
+    setStatus('Đang ghi âm… phát tiếng Morse vào micro rồi bấm Dừng.');
+  } catch (e) {
+    setStatus('Không mở được micro — trình duyệt chưa cho quyền hoặc thiết bị không có micro.', true);
+  }
+});
+
+// Show Morse for the default input on load
+$('encode-morse').textContent = textToMorse($('encode-input').value);
+$('encode-result').classList.add('show');
+</script>
+</body>
+</html>
