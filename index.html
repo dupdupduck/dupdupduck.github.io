@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Caro Arena — Đấu trí với Bot của anh</title>
+<title>Caro Arena — Đấu trí với Bot Farm</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0B0F1A">
 <meta name="mobile-web-app-capable" content="yes">
@@ -266,24 +266,24 @@
     <span class="mark"></span>
     <div>
       <h1>CARO ARENA</h1>
-      <p>Đấu trí với <b>Bot của anh</b> — engine cờ caro chuyên nghiệp</p>
+      <p>Đấu trí với <b>Bot Farm</b> — engine cờ caro chuyên nghiệp</p>
     </div>
   </div>
-  <span class="badge"><span class="dot"></span>Bot AI • Không cần đăng nhập</span>
+  <span class="badge"><span class="dot"></span>Bot Farm • Không cần đăng nhập</span>
   <button id="btn-install" hidden>📲 Cài đặt app</button>
 </header>
 
 <main class="layout">
   <section class="board-col">
-    <div id="status">Đang tải bot…</div>
+    <div id="status">Đang tải Bot Farm…</div>
     <div id="thinking-bar"></div>
     <div id="board-wrap"><canvas id="board"></canvas></div>
     <div class="toolbar">
       <button id="btn-new" class="primary">🔄 Ván mới</button>
       <button id="btn-undo" title="Hoàn tác 1 quân vừa đánh">↩ Hoàn tác</button>
       <button id="btn-redo" title="Đánh lại nước vừa hoàn tác">↪ Làm lại</button>
-      <button id="btn-hint" title="Bot gợi ý nước tốt nhất cho anh">💡 Gợi ý</button>
-      <button id="btn-stop" title="Dừng bot đang nghĩ, đánh lại nước vừa rồi">⏹ Dừng</button>
+      <button id="btn-hint" title="Bot Farm gợi ý nước tốt nhất cho anh">💡 Gợi ý</button>
+      <button id="btn-stop" title="Dừng Bot Farm đang nghĩ, đánh lại nước vừa rồi">⏹ Dừng</button>
       <button id="btn-flip" title="Xoay bàn cờ 180°">🔃 Lật bàn</button>
     </div>
   </section>
@@ -304,7 +304,7 @@
       <h2>Cài đặt trận đấu</h2>
       <div class="field">
         <label for="difficulty">Cấp độ</label>
-        <select id="difficulty" title="Cấp độ bot">
+        <select id="difficulty" title="Cấp độ Bot Farm">
           <option value="500">Dễ — 0.5s</option>
           <option value="1500" selected>Trung bình — 1.5s</option>
           <option value="3500">Khó — 3.5s</option>
@@ -312,8 +312,8 @@
         </select>
       </div>
       <div class="field">
-        <label for="boardsize">Cỡ bàn cờ</label>
-        <input id="boardsize" type="number" min="9" max="19" step="1" value="15" title="Cỡ bàn cờ (9–19)">
+        <label for="boardsize">Cỡ bàn (vuông)</label>
+        <input id="boardsize" type="number" min="9" max="21" step="1" value="15" title="Cỡ bàn vuông (9–21)">
       </div>
       <div class="field">
         <label for="side">Bên của bạn</label>
@@ -324,13 +324,13 @@
       </div>
       <div class="field">
         <label>Quân của bạn</label>
-        <span class="you-chip"><span class="legend x" id="legend-you"></span>Bạn <b id="you-are">X</b><span class="legend o" id="legend-bot"></span>Bot</span>
+        <span class="you-chip"><span class="legend x" id="legend-you"></span>Bạn <b id="you-are">X</b><span class="legend o" id="legend-bot"></span>Bot Farm</span>
       </div>
     </div>
 
     <div class="card">
-      <h2>Thông số Bot</h2>
-      <div id="engine-stats"><span id="engine-stats-empty">Chưa có dữ liệu — đánh một nước để xem bot tính toán.</span></div>
+      <h2>Thông số Bot Farm</h2>
+      <div id="engine-stats"><span id="engine-stats-empty">Chưa có dữ liệu — đánh một nước để xem Bot Farm tính toán.</span></div>
     </div>
 
     <div class="card">
@@ -350,11 +350,12 @@
   <h2>Luật chơi</h2>
   <ul>
     <li><b>5 quân liên tiếp</b> (ngang, dọc hoặc chéo) là thắng — luật tự do.</li>
-    <li>Anh đi <b>X (hồng)</b>, bot đi <b>O (xanh)</b>. Đổi bên ở phần Cài đặt.</li>
-    <li>Bấm <b>💡 Gợi ý</b> để bot chỉ nước tốt nhất cho anh.</li>
+    <li>Anh đi <b>X (hồng)</b>, Bot Farm đi <b>O (xanh)</b>. Đổi bên ở phần Cài đặt.</li>
+    <li>Bấm <b>💡 Gợi ý</b> để Bot Farm chỉ nước tốt nhất cho anh.</li>
     <li><b>↩ Hoàn tác</b> gỡ đúng 1 quân, <b>↪ Làm lại</b> đánh lại nước đó.</li>
-    <li>Cấp độ càng cao, bot nghĩ càng lâu và càng mạnh. <b>Cao thủ: 6 giây/nước.</b></li>
-    <li>Đổi cỡ bàn (9–19) hoặc bên đi sẽ bắt đầu ván mới.</li>
+    <li>Cấp độ càng cao, Bot Farm nghĩ càng lâu và càng mạnh. <b>Cao thủ: 6 giây/nước.</b></li>
+    <li>Đổi cỡ bàn vuông (9–21) hoặc bên đi sẽ bắt đầu ván mới.</li>
+    <li>Ván đang chơi được lưu tự động — tải lại trang hay đóng tab mở lại vẫn còn nguyên.</li>
   </ul>
 </section>
 
@@ -398,7 +399,65 @@
   const nextPlayer = () => (moves.length % 2 === 0 ? 1 : 2);
   const isBotTurn = () => nextPlayer() === botSide();
   const humanLabel = () => humanSide === 1 ? 'X (hồng)' : 'O (xanh)';
-  const clampSize = (n) => Math.max(9, Math.min(19, n || 15));
+  const clampSize = (n) => Math.max(9, Math.min(21, n || 15));
+
+  // ---------- Save all: cài đặt + ván đang chơi (sống qua F5 / đóng tab) ----------
+  const SAVE_KEY = 'caro-arena-save-v1';
+  let lastResult = null; // 'win' | 'lose' | 'draw' | null
+  function saveAll() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        size: SIZE,
+        humanSide: humanSide,
+        difficulty: diffEl.value,
+        flip: flip,
+        moves: moves,
+        gameOver: gameOver,
+        result: lastResult,
+      }));
+    } catch (e) {}
+    saveScore();
+  }
+  function loadSave() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+      if (!s || !Array.isArray(s.moves) || typeof s.size !== 'number') return null;
+      return s;
+    } catch (e) { return null; }
+  }
+  function restoreSave(s) {
+    SIZE = clampSize(s.size);
+    humanSide = (s.humanSide === 2) ? 2 : 1;
+    if (s.difficulty && diffEl.querySelector('option[value="' + s.difficulty + '"]')) {
+      diffEl.value = s.difficulty;
+    }
+    if (s.flip) flip = true;
+    sizeEl.value = SIZE;
+    sideEl.value = String(humanSide);
+    newBoard();
+    s.moves.forEach(function (mv) {
+      if (mv && mv.x >= 0 && mv.x < SIZE && mv.y >= 0 && mv.y < SIZE && (mv.p === 1 || mv.p === 2)) {
+        board[mv.y][mv.x] = mv.p;
+        moves.push({ x: mv.x, y: mv.y, p: mv.p });
+      }
+    });
+    lastMove = moves.length ? moves[moves.length - 1] : null;
+    if (s.gameOver && s.result) {
+      gameOver = true;
+      lastResult = s.result;
+      if ((lastResult === 'win' || lastResult === 'lose') && lastMove) {
+        const res = checkWin(lastMove.x, lastMove.y, lastMove.p);
+        if (res.win) winLine = res.line;
+      }
+    }
+    renderMoves();
+    draw();
+  }
+  function resultStatus(result) {
+    if (result === 'win') return 'Bạn thắng rồi! Bot Farm cũng có ngày thua 😎';
+    if (result === 'lose') return 'Bot Farm thắng. Phục thù ván nữa không anh?';
+    return 'Hòa! Căng như dây đàn.';
+  }
 
   function saveScore() {
     try { localStorage.setItem('caro-arena-score', JSON.stringify(score)); } catch (e) {}
@@ -474,19 +533,19 @@
       if (this.failures >= 2) {
         this.startMain();
       } else {
-        setStatus('Bot gặp sự cố — đang tải lại…', 'thinking');
+        setStatus('Bot Farm gặp sự cố — đang tải lại…', 'thinking');
         setTimeout(() => this.startWorker(), 600);
       }
     },
     startMain() {
       this.mode = 'main';
-      setStatus('Đang tải bot (chế độ dự phòng)…', 'thinking');
+      setStatus('Đang tải Bot Farm (chế độ dự phòng)…', 'thinking');
       loadMainEngine().then((inst) => {
         this.mainInst = inst;
         this.ready = true;
         if (this.readyCb) this.readyCb();
       }).catch((err) => {
-        setStatus('Không tải được bot: ' + (err && err.message ? err.message : err) + ' — kiểm tra mạng rồi tải lại trang nhé.');
+        setStatus('Không tải được Bot Farm: ' + (err && err.message ? err.message : err) + ' — kiểm tra mạng rồi tải lại trang nhé.');
       });
     },
     restart(cb) {
@@ -679,7 +738,7 @@
     hover = null;
     anim = null;
     renderMoves();
-    statsEl.innerHTML = '<span id="engine-stats-empty">Chưa có dữ liệu — đánh một nước để xem bot tính toán.</span>';
+    statsEl.innerHTML = '<span id="engine-stats-empty">Chưa có dữ liệu — đánh một nước để xem Bot Farm tính toán.</span>';
     draw();
   }
   function checkWin(x, y, p) {
@@ -708,6 +767,7 @@
     const res = checkWin(x, y, p);
     if (res.win) winLine = res.line;
     draw();
+    saveAll();
     return res.win;
   }
   function renderMoves() {
@@ -731,10 +791,11 @@
   function endGame(result) {
     gameOver = true;
     botThinking = false;
-    if (result === 'win') { score.w++; setStatus('Bạn thắng rồi! Bot cũng có ngày thua 😎', 'win'); }
-    else if (result === 'lose') { score.l++; setStatus('Bot thắng. Phục thù ván nữa không anh?', 'lose'); }
+    lastResult = result;
+    if (result === 'win') { score.w++; setStatus('Bạn thắng rồi! Bot Farm cũng có ngày thua 😎', 'win'); }
+    else if (result === 'lose') { score.l++; setStatus('Bot Farm thắng. Phục thù ván nữa không anh?', 'lose'); }
     else { score.d++; setStatus('Hòa! Căng như dây đàn.', 'draw'); }
-    saveScore();
+    saveAll();
     draw();
   }
 
@@ -750,7 +811,7 @@
         // engine replied to a no-move sync: take it back so its board matches ours
         Engine.send('TAKEBACK ' + x + ',' + y);
         botThinking = false;
-        yourTurnStatus();
+        if (!gameOver) yourTurnStatus();
         return;
       }
       if (pr.kind === 'hint') {
@@ -789,43 +850,45 @@
     }
   }
   // (Re)start the engine and bring it to the current position.
-  function setupEngine() {
-    const doSetup = () => {
-      Engine.send('START ' + SIZE);
-      Engine.send('INFO timeout_turn ' + diffEl.value);
-      Engine.send('INFO timeout_match 100000');
-      if (moves.length === 0) {
-        if (humanSide === 2) {
-          pendingReply = { kind: 'botmove' };
-          botThinking = true;
-          setStatus('Bot đi trước…', 'thinking');
-          Engine.send('BEGIN');
-        } else {
-          yourTurnStatus();
-        }
-        return;
-      }
-      // Sync position with ONE multi-line BOARD command (must not be split:
-      // the engine reads the whole block in a single call).
-      const lines = ['BOARD'];
-      moves.forEach(function (mv) { lines.push(mv.x + ',' + mv.y + ',' + mv.p); });
-      lines.push('DONE');
-      if (isBotTurn()) {
+  // forceNoMove: sync the board but never let the engine reply with a move
+  // (used when restoring a finished game).
+  function doSetup(forceNoMove) {
+    Engine.send('START ' + SIZE);
+    Engine.send('INFO timeout_turn ' + diffEl.value);
+    Engine.send('INFO timeout_match 100000');
+    if (moves.length === 0) {
+      if (humanSide === 2) {
         pendingReply = { kind: 'botmove' };
         botThinking = true;
-        setStatus('Bot đang nghĩ…', 'thinking');
+        setStatus('Bot Farm đi trước…', 'thinking');
+        Engine.send('BEGIN');
       } else {
-        pendingReply = { kind: 'discard' };
-        botThinking = false;
+        yourTurnStatus();
       }
-      Engine.send(lines.join('\n'));
-    };
-    Engine.restart(doSetup);
+      return;
+    }
+    // Sync position with ONE multi-line BOARD command (must not be split:
+    // the engine reads the whole block in a single call).
+    const lines = ['BOARD'];
+    moves.forEach(function (mv) { lines.push(mv.x + ',' + mv.y + ',' + mv.p); });
+    lines.push('DONE');
+    if (!forceNoMove && isBotTurn()) {
+      pendingReply = { kind: 'botmove' };
+      botThinking = true;
+      setStatus('Bot Farm đang nghĩ…', 'thinking');
+    } else {
+      pendingReply = { kind: 'discard' };
+      botThinking = false;
+    }
+    Engine.send(lines.join('\n'));
+  }
+  function setupEngine(forceNoMove) {
+    Engine.restart(function () { doSetup(forceNoMove); });
   }
   function botMoveAfterHuman(x, y) {
     botThinking = true;
     pendingReply = { kind: 'botmove' };
-    setStatus('Bot đang nghĩ…', 'thinking');
+    setStatus('Bot Farm đang nghĩ…', 'thinking');
     Engine.send('TURN ' + x + ',' + y);
   }
 
@@ -863,8 +926,10 @@
     newBoard();
     redoStack = [];
     hint = null;
-    setStatus('Đang tải bot…');
+    lastResult = null;
+    setStatus('Đang tải Bot Farm…');
     setupEngine();
+    saveAll();
   }
   document.getElementById('btn-new').addEventListener('click', newGame);
   document.getElementById('btn-undo').addEventListener('click', function () {
@@ -877,9 +942,11 @@
     hint = null;
     winLine = null;
     gameOver = false;
+    lastResult = null;
     renderMoves();
     draw();
-    setStatus('Đang đồng bộ bot…');
+    saveAll();
+    setStatus('Đang đồng bộ Bot Farm…');
     setupEngine();
   });
   document.getElementById('btn-redo').addEventListener('click', function () {
@@ -891,9 +958,11 @@
     hint = null;
     winLine = null;
     gameOver = false;
+    lastResult = null;
     renderMoves();
     draw();
-    setStatus('Đang đồng bộ bot…');
+    saveAll();
+    setStatus('Đang đồng bộ Bot Farm…');
     setupEngine();
   });
   document.getElementById('btn-hint').addEventListener('click', function () {
@@ -904,12 +973,12 @@
     const lines = ['BOARD'];
     moves.forEach(function (mv) { lines.push(mv.x + ',' + mv.y + ',' + mv.p); });
     lines.push('DONE');
-    setStatus('Bot đang tính nước gợi ý…', 'thinking');
+    setStatus('Bot Farm đang tính nước gợi ý…', 'thinking');
     Engine.send(lines.join('\n'));
   });
   document.getElementById('btn-stop').addEventListener('click', function () {
     if (!botThinking) return;
-    // Dừng bot đang nghĩ, hủy nước vừa đánh để đánh lại
+    // Dừng Bot Farm đang nghĩ, hủy nước vừa đánh để đánh lại
     botThinking = false;
     pendingReply = null;
     if (moves.length) {
@@ -922,15 +991,20 @@
       renderMoves();
       draw();
     }
-    setStatus('Đã dừng bot — anh đánh lại nước vừa rồi');
+    gameOver = false;
+    lastResult = null;
+    saveAll();
+    setStatus('Đã dừng Bot Farm — anh đánh lại nước vừa rồi');
     setupEngine();
   });
   document.getElementById('btn-flip').addEventListener('click', function () {
     flip = !flip;
     draw();
+    saveAll();
   });
   diffEl.addEventListener('change', function () {
     if (Engine.ready) Engine.send('INFO timeout_turn ' + diffEl.value);
+    saveAll();
   });
   sideEl.addEventListener('change', newGame);
   sizeEl.addEventListener('change', function () {
@@ -968,16 +1042,24 @@
 
   // ---------- Boot ----------
   saveScore();
-  applySideUI();
-  newBoard();
-  setupCanvas();
-  setStatus('Đang tải bot…');
-  Engine.init(function () {
-    Engine.send('START ' + SIZE);
-    Engine.send('INFO timeout_turn ' + diffEl.value);
-    Engine.send('INFO timeout_match 100000');
-    yourTurnStatus();
-  });
+  const saved = loadSave();
+  if (saved) {
+    restoreSave(saved);
+    applySideUI();
+    setupCanvas();
+    if (saved.gameOver && saved.result) {
+      setStatus(resultStatus(saved.result), saved.result === 'win' ? 'win' : saved.result === 'lose' ? 'lose' : 'draw');
+    } else {
+      setStatus('Đang tải Bot Farm…');
+    }
+    Engine.init(function () { doSetup(!!saved.gameOver); });
+  } else {
+    applySideUI();
+    newBoard();
+    setupCanvas();
+    setStatus('Đang tải Bot Farm…');
+    Engine.init(function () { doSetup(false); });
+  }
 })();
 </script>
 </body>
