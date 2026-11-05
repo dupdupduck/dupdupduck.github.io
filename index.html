@@ -1,7 +1,469 @@
-<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta name=renderer content=webkit><meta name=force-rendering content=webkit><meta http-equiv=X-UA-Compatible content="IE=Edge,chrome=1"><meta http-equiv=Cache-Control content=no-siteapp><meta name=x5-page-mode content=app><meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"><meta name=mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-status-bar-style content=default><meta name=apple-mobile-web-app-title content=Gomocalc><meta name=description content="A powerful and easy-to-use online Gomoku/Renju AI"><link rel="shortcut icon" sizes=192x192 href=/icon.png><link rel=apple-touch-icon href=/icon.png><!--[if IE]><link rel="icon" type="image/png" href="/favicon.png" /><![endif]--><link rel=stylesheet href=/css/font-awesome.min.css><title>五子棋计算器 Gomoku Calculator</title><link href=/js/about.02744240.js rel=prefetch><link href=/js/app.fb068354.js rel=preload as=script><link href=/js/chunk-vendors.f0810fb7.js rel=preload as=script><link rel=icon type=image/png sizes=32x32 href=/favicon.png><link rel=icon type=image/png sizes=16x16 href=/favicon.png><link rel=manifest href=/manifest.json><meta name=theme-color content=#2E86C1><meta name=apple-mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-status-bar-style content=default><meta name=apple-mobile-web-app-title content="Gomoku Calculator"><link rel=apple-touch-icon href=/icon.png><meta name=msapplication-TileImage content=/icon.png><meta name=msapplication-TileColor content=#2E86C1></head><body><noscript><strong>We're sorry but Gomoku Calculator doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id=app></div><script async src=/lib/gif.js></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-WSNZ3J3X2V"></script><script>window.dataLayer = window.dataLayer || []
-      function gtag() {
-        dataLayer.push(arguments)
-      }
-      gtag('js', new Date())
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Caro Arena — Đấu trí với Rapfi AI</title>
+<style>
+  :root {
+    --bg: #0B0F1A;
+    --panel: #131A2A;
+    --panel2: #1A2338;
+    --pink: #FF2E63;
+    --cyan: #00F5FF;
+    --yellow: #FBFF12;
+    --text: #E8ECF4;
+    --muted: #8A94A8;
+    --line: #26314D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px 32px;
+  }
+  header { text-align: center; margin-bottom: 14px; }
+  h1 {
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--pink), #FF7AA8 45%, var(--cyan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1.1;
+  }
+  header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  header p b { color: var(--cyan); }
+  #status {
+    margin: 12px 0;
+    padding: 10px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    min-width: min(560px, 94vw);
+  }
+  #status.thinking { color: var(--yellow); }
+  #status.win { color: var(--pink); }
+  #status.lose { color: var(--cyan); }
+  #status.draw { color: var(--muted); }
+  #board-wrap {
+    position: relative;
+    width: min(560px, 94vw);
+    aspect-ratio: 1;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--line), 0 0 42px rgba(0, 245, 255, 0.12), 0 0 42px rgba(255, 46, 99, 0.10);
+  }
+  canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; cursor: pointer; }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 14px;
+    width: min(560px, 94vw);
+  }
+  .controls select, .controls button {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+  }
+  .controls button { cursor: pointer; }
+  .controls button:hover { border-color: var(--cyan); }
+  .controls button.primary {
+    background: linear-gradient(90deg, var(--pink), #D61C4E);
+    border: none;
+    color: #fff;
+  }
+  .controls button.primary:hover { filter: brightness(1.15); }
+  .info {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 12px;
+    width: min(560px, 94vw);
+  }
+  .chip {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .chip b { color: var(--text); }
+  #engine-stats {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    min-height: 18px;
+  }
+  #engine-stats b { color: var(--cyan); }
+  #moves {
+    margin-top: 12px;
+    width: min(560px, 94vw);
+    max-height: 110px;
+    overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  #moves b { color: var(--text); }
+  .legend { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin: 0 3px 0 8px; }
+  .legend.x { background: var(--pink); }
+  .legend.o { background: var(--cyan); }
+  footer { margin-top: 16px; font-size: 12px; color: #55617A; text-align: center; }
+  footer a { color: #55617A; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CARO ARENA</h1>
+  <p>Đấu trí với <b>Rapfi AI</b> — engine cờ caro mạnh nhất thế giới</p>
+</header>
 
-      gtag('config', 'G-WSNZ3J3X2V')</script><script src=/js/chunk-vendors.f0810fb7.js></script><script src=/js/app.fb068354.js></script></body></html>
+<div id="status">Đang tải engine Rapfi…</div>
+
+<div id="board-wrap"><canvas id="board"></canvas></div>
+
+<div class="controls">
+  <select id="difficulty" title="Độ khó">
+    <option value="500">Dễ — 0.5s</option>
+    <option value="1500" selected>Trung bình — 1.5s</option>
+    <option value="3500">Khó — 3.5s</option>
+    <option value="6000">Max — 6s</option>
+  </select>
+  <select id="side" title="Bạn cầm quân nào">
+    <option value="1" selected>Bạn đi trước (X)</option>
+    <option value="2">Bạn đi sau (O)</option>
+  </select>
+  <button id="btn-new" class="primary">Ván mới</button>
+  <button id="btn-undo">Hoàn tác</button>
+</div>
+
+<div class="info">
+  <span class="chip">Thắng <b id="score-w">0</b></span>
+  <span class="chip">Thua <b id="score-l">0</b></span>
+  <span class="chip">Hòa <b id="score-d">0</b></span>
+  <span class="chip"><span class="legend x"></span>Bạn <b id="you-are">X</b><span class="legend o"></span>Bot</span>
+</div>
+
+<div id="engine-stats"></div>
+<div id="moves"><b>Lịch sử nước đi</b><br><span id="moves-list">—</span></div>
+
+<footer>Caro Arena • Engine <a href="https://github.com/dhbloo/rapfi" target="_blank" rel="noopener">Rapfi</a> (GPL-3.0) • NNUE mix9svq • Chạy hoàn toàn trên trình duyệt của bạn</footer>
+
+<script>
+(function () {
+  'use strict';
+  const SIZE = 15;
+  const HUMAN = 1, BOT = 2; // Gomocup: 1 = X, 2 = O
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+  const statusEl = document.getElementById('status');
+  const statsEl = document.getElementById('engine-stats');
+  const movesListEl = document.getElementById('moves-list');
+  const diffEl = document.getElementById('difficulty');
+  const sideEl = document.getElementById('side');
+
+  let board = [];
+  let moves = []; // [{x, y, p}]
+  let gameOver = false;
+  let botThinking = false;
+  let engineReady = false;
+  let humanSide = 1;
+  let hover = null;
+  let lastMove = null;
+  let worker = null;
+  let score = { w: 0, l: 0, d: 0 };
+  try {
+    const s = JSON.parse(localStorage.getItem('caro-arena-score') || '{}');
+    score = { w: s.w | 0, l: s.l | 0, d: s.d | 0 };
+  } catch (e) {}
+  const COLS = 'ABCDEFGHIJKLMNO';
+
+  function saveScore() {
+    try { localStorage.setItem('caro-arena-score', JSON.stringify(score)); } catch (e) {}
+    document.getElementById('score-w').textContent = score.w;
+    document.getElementById('score-l').textContent = score.l;
+    document.getElementById('score-d').textContent = score.d;
+  }
+
+  function setStatus(text, cls) {
+    statusEl.textContent = text;
+    statusEl.className = cls || '';
+  }
+
+  // ---------- Board drawing ----------
+  function setupCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  function cell() { return canvas.getBoundingClientRect().width / (SIZE + 1); }
+  function draw() {
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, c = cell(), pad = c;
+    ctx.clearRect(0, 0, W, W);
+    const bg = ctx.createLinearGradient(0, 0, W, W);
+    bg.addColorStop(0, '#1B2540');
+    bg.addColorStop(1, '#121A2E');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, W);
+    ctx.strokeStyle = '#3A4A6E';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < SIZE; i++) {
+      ctx.moveTo(pad + i * c, pad); ctx.lineTo(pad + i * c, pad + (SIZE - 1) * c);
+      ctx.moveTo(pad, pad + i * c); ctx.lineTo(pad + (SIZE - 1) * c, pad + i * c);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#3A4A6E';
+    [[3, 3], [3, 11], [11, 3], [11, 11], [7, 7]].forEach(function (pt) {
+      ctx.beginPath(); ctx.arc(pad + pt[0] * c, pad + pt[1] * c, 3.5, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.fillStyle = '#5A6B8F';
+    ctx.font = Math.max(9, c * 0.32) + 'px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = 0; i < SIZE; i++) {
+      ctx.fillText(COLS[i], pad + i * c, pad - c * 0.62);
+      ctx.fillText(String(i + 1), pad - c * 0.62, pad + i * c);
+    }
+    if (hover && !gameOver && !botThinking && board[hover.y][hover.x] === 0) {
+      ctx.globalAlpha = 0.45;
+      drawStone(hover.x, hover.y, humanSide);
+      ctx.globalAlpha = 1;
+    }
+    for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+      if (board[y][x] !== 0) drawStone(x, y, board[y][x]);
+    }
+    if (lastMove) {
+      ctx.strokeStyle = '#FBFF12';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pad + lastMove.x * c, pad + lastMove.y * c, c * 0.36, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  function drawStone(x, y, p) {
+    const c = cell(), pad = c;
+    const cx = pad + x * c, cy = pad + y * c, r = c * 0.44;
+    const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, r * 0.1, cx, cy, r);
+    if (p === 1) { g.addColorStop(0, '#FF7AA8'); g.addColorStop(0.55, '#FF2E63'); g.addColorStop(1, '#B3123F'); }
+    else { g.addColorStop(0, '#B8FBFF'); g.addColorStop(0.55, '#00F5FF'); g.addColorStop(1, '#0093A6'); }
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  function posToCell(ev) {
+    const rect = canvas.getBoundingClientRect();
+    const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+    const py = (ev.touches ? ev.touches[0].clientY : ev.clientY) - rect.top;
+    const c = cell(), pad = c;
+    const x = Math.round((px - pad) / c), y = Math.round((py - pad) / c);
+    if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) return null;
+    return { x: x, y: y };
+  }
+
+  // ---------- Game logic ----------
+  function newBoard() {
+    board = Array.from({ length: SIZE }, function () { return Array(SIZE).fill(0); });
+    moves = [];
+    gameOver = false;
+    botThinking = false;
+    lastMove = null;
+    movesListEl.textContent = '—';
+    statsEl.textContent = '';
+    draw();
+  }
+  function checkWin(x, y, p) {
+    const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+    for (let d = 0; d < dirs.length; d++) {
+      const dx = dirs[d][0], dy = dirs[d][1];
+      let n = 1;
+      for (let s = 1; s < 5; s++) { const nx = x + dx * s, ny = y + dy * s; if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || board[ny][nx] !== p) break; n++; }
+      for (let s = 1; s < 5; s++) { const nx = x - dx * s, ny = y - dy * s; if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || board[ny][nx] !== p) break; n++; }
+      if (n >= 5) return true;
+    }
+    return false;
+  }
+  function placeStone(x, y, p) {
+    board[y][x] = p;
+    moves.push({ x: x, y: y, p: p });
+    lastMove = { x: x, y: y };
+    renderMoves();
+    draw();
+    return checkWin(x, y, p);
+  }
+  function renderMoves() {
+    if (!moves.length) { movesListEl.textContent = '—'; return; }
+    movesListEl.innerHTML = moves.map(function (m, i) {
+      const label = COLS[m.x] + (m.y + 1);
+      return (i % 2 === 0 ? '<b>' + (i / 2 + 1) + '.</b> ' : '') + (m.p === 1 ? 'X' : 'O') + ' ' + label;
+    }).join(' &nbsp; ');
+    movesListEl.parentElement.scrollTop = movesListEl.parentElement.scrollHeight;
+  }
+  function endGame(result) {
+    gameOver = true;
+    botThinking = false;
+    if (result === 'win') { score.w++; setStatus('Bạn thắng rồi! Rapfi cũng có ngày thua 😎', 'win'); }
+    else if (result === 'lose') { score.l++; setStatus('Bot thắng. Phục thù ván nữa không anh?', 'lose'); }
+    else { score.d++; setStatus('Hòa! Căng như dây đàn.', 'draw'); }
+    saveScore();
+  }
+
+  // ---------- Engine ----------
+  function sendCmd(cmd) { if (worker) worker.postMessage({ type: 'command', data: cmd }); }
+  function startWorker() {
+    if (worker) { try { worker.terminate(); } catch (e) {} }
+    worker = new Worker('engine-worker.js');
+    engineReady = false;
+    worker.onmessage = function (e) {
+      const d = e.data;
+      if (d.type === 'ready') {
+        engineReady = true;
+        sendCmd('START 15');
+        sendCmd('INFO timeout_turn ' + diffEl.value);
+        sendCmd('INFO timeout_match 100000');
+        if (humanSide === 2) {
+          setStatus('Bot đi trước…', 'thinking');
+          botThinking = true;
+          sendCmd('BEGIN');
+        } else {
+          setStatus('Lượt của bạn — đặt quân X (hồng)');
+        }
+      } else if (d.type === 'stdout') {
+        onEngineLine(d.data);
+      } else if (d.type === 'error') {
+        setStatus('Lỗi tải engine: ' + d.data);
+      }
+    };
+    worker.onerror = function (err) { setStatus('Lỗi worker: ' + (err.message || err)); };
+    worker.postMessage({ type: 'init' });
+  }
+  function onEngineLine(line) {
+    if (!line) return;
+    const m = line.match(/^(\d+),(\d+)$/);
+    if (m) {
+      const x = parseInt(m[1], 10), y = parseInt(m[2], 10);
+      botThinking = false;
+      if (board[y] && board[y][x] === 0) {
+        const won = placeStone(x, y, BOT);
+        if (won) { endGame('lose'); return; }
+        if (moves.length >= SIZE * SIZE) { endGame('draw'); return; }
+        setStatus('Lượt của bạn — đặt quân X (hồng)');
+      }
+      return;
+    }
+    if (line.indexOf('MESSAGE') === 0) {
+      const sm = line.match(/Speed (\d+) \| Depth (\S+) \| Eval (-?\d+) \| Node (\S+) \| Time (\d+)ms/);
+      const dm = line.match(/Depth (\d+-\d+) \| Eval (-?\d+) \| Time (\d+)ms/);
+      if (sm) statsEl.innerHTML = 'Bot: độ sâu <b>' + sm[2] + '</b> • đánh giá <b>' + sm[3] + '</b> • <b>' + sm[1] + '</b> nút/giây • <b>' + sm[4] + '</b> nút • <b>' + sm[5] + 'ms</b>';
+      else if (dm) statsEl.innerHTML = 'Bot đang nghĩ… độ sâu <b>' + dm[1] + '</b> • đánh giá <b>' + dm[2] + '</b>';
+    }
+  }
+  function botMoveAfterHuman(x, y) {
+    botThinking = true;
+    setStatus('Bot đang nghĩ…', 'thinking');
+    statsEl.textContent = '';
+    sendCmd('TURN ' + x + ',' + y);
+  }
+  function replayIntoEngine(keepMoves) {
+    startWorker();
+    const waitReady = setInterval(function () {
+      if (!engineReady) return;
+      clearInterval(waitReady);
+      if (keepMoves.length === 0) {
+        if (humanSide === 2) { botThinking = true; setStatus('Bot đi trước…', 'thinking'); sendCmd('BEGIN'); }
+        else setStatus('Lượt của bạn — đặt quân X (hồng)');
+        return;
+      }
+      botThinking = true;
+      setStatus('Bot đang nghĩ…', 'thinking');
+      sendCmd('BOARD');
+      keepMoves.forEach(function (mv) { sendCmd(mv.x + ',' + mv.y + ',' + mv.p); });
+      sendCmd('DONE');
+    }, 100);
+  }
+
+  // ---------- Events ----------
+  function humanPlay(x, y) {
+    if (gameOver || botThinking || !engineReady) return;
+    if (board[y][x] !== 0) return;
+    const won = placeStone(x, y, humanSide);
+    if (won) { endGame('win'); return; }
+    if (moves.length >= SIZE * SIZE) { endGame('draw'); return; }
+    botMoveAfterHuman(x, y);
+  }
+  canvas.addEventListener('click', function (ev) {
+    const cellPos = posToCell(ev);
+    if (cellPos) humanPlay(cellPos.x, cellPos.y);
+  });
+  canvas.addEventListener('mousemove', function (ev) {
+    hover = posToCell(ev);
+    draw();
+  });
+  canvas.addEventListener('mouseleave', function () { hover = null; draw(); });
+
+  document.getElementById('btn-new').addEventListener('click', function () {
+    humanSide = parseInt(sideEl.value, 10);
+    document.getElementById('you-are').textContent = humanSide === 1 ? 'X' : 'O';
+    newBoard();
+    setStatus('Đang tải engine Rapfi…');
+    startWorker();
+  });
+  document.getElementById('btn-undo').addEventListener('click', function () {
+    if (botThinking || moves.length === 0) return;
+    const keep = moves.slice(0, moves.length >= 2 ? moves.length - 2 : 0);
+    newBoard();
+    keep.forEach(function (mv) { board[mv.y][mv.x] = mv.p; moves.push(mv); });
+    if (moves.length) lastMove = moves[moves.length - 1];
+    renderMoves();
+    draw();
+    setStatus('Đang tải lại engine…');
+    replayIntoEngine(keep);
+  });
+  diffEl.addEventListener('change', function () {
+    if (engineReady) sendCmd('INFO timeout_turn ' + diffEl.value);
+  });
+  sideEl.addEventListener('change', function () {
+    humanSide = parseInt(sideEl.value, 10);
+    document.getElementById('you-are').textContent = humanSide === 1 ? 'X' : 'O';
+  });
+  window.addEventListener('resize', setupCanvas);
+
+  // ---------- Boot ----------
+  saveScore();
+  document.getElementById('you-are').textContent = 'X';
+  newBoard();
+  setupCanvas();
+  startWorker();
+})();
+</script>
+</body>
+</html>
