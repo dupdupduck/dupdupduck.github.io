@@ -4,198 +4,345 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Caro Arena — Đấu trí với Bot của anh</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0F1A'/%3E%3Ccircle cx='23' cy='32' r='13' fill='%23FF2E63'/%3E%3Ccircle cx='43' cy='32' r='13' fill='%2300F5FF'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0B0F1A;
-    --panel: #131A2A;
+    --panel: rgba(19, 26, 42, 0.82);
+    --panel-solid: #131A2A;
     --panel2: #1A2338;
     --pink: #FF2E63;
+    --pink-soft: #FF7AA8;
     --cyan: #00F5FF;
     --yellow: #FBFF12;
     --text: #E8ECF4;
     --muted: #8A94A8;
-    --line: #26314D;
+    --line: rgba(255, 255, 255, 0.07);
+    --line-strong: #26314D;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
+    padding: 0 16px 40px;
+    overflow-x: hidden;
+  }
+  .bg-glow { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(560px 380px at 12% -6%, rgba(255, 46, 99, 0.14), transparent 65%),
+      radial-gradient(620px 420px at 96% 108%, rgba(0, 245, 255, 0.10), transparent 65%);
+  }
+  header, main, section.rules, footer { position: relative; z-index: 1; }
+
+  /* ---------- Top bar ---------- */
+  header.topbar {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    padding: 20px 0 18px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 16px 12px 32px;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
   }
-  header { text-align: center; margin-bottom: 14px; }
-  h1 {
-    font-size: 34px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    background: linear-gradient(90deg, var(--pink), #FF7AA8 45%, var(--cyan));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    line-height: 1.1;
+  .brand { display: flex; align-items: center; gap: 13px; }
+  .mark {
+    width: 46px; height: 46px; flex: none; border-radius: 14px;
+    background: linear-gradient(135deg, var(--pink) 0%, #B3123F 55%, #5A0E24 100%);
+    position: relative;
+    box-shadow: 0 6px 22px rgba(255, 46, 99, 0.35);
   }
-  header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
-  header p b { color: var(--cyan); }
+  .mark::after {
+    content: ""; position: absolute; right: -7px; bottom: -7px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #B8FBFF, var(--cyan) 55%, #0093A6);
+    border: 2px solid var(--bg);
+    box-shadow: 0 4px 14px rgba(0, 245, 255, 0.4);
+  }
+  .mark::before {
+    content: "×"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 26px; font-weight: 900; line-height: 1; padding-bottom: 2px;
+  }
+  .brand h1 {
+    font-size: 30px; font-weight: 900; letter-spacing: 2.5px; line-height: 1;
+    background: linear-gradient(90deg, var(--pink), var(--pink-soft) 45%, var(--cyan));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .brand p { color: var(--muted); font-size: 13.5px; margin-top: 5px; font-weight: 500; }
+  .brand p b { color: var(--cyan); font-weight: 700; }
+  .badge {
+    font-size: 12.5px; font-weight: 700; color: var(--text);
+    background: var(--panel); border: 1px solid var(--line-strong);
+    padding: 9px 14px; border-radius: 999px; white-space: nowrap;
+    backdrop-filter: blur(8px);
+  }
+  .badge .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #2BD97B; box-shadow: 0 0 8px #2BD97B; margin-right: 7px; vertical-align: 1px; }
+
+  /* ---------- Layout ---------- */
+  main.layout {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { main.layout { grid-template-columns: 1fr; } }
+
+  /* ---------- Status ---------- */
   #status {
-    margin: 12px 0;
-    padding: 10px 16px;
+    padding: 13px 18px;
     background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    font-size: 15.5px; font-weight: 700;
     text-align: center;
-    min-width: min(560px, 94vw);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   }
   #status.thinking { color: var(--yellow); }
   #status.win { color: var(--pink); }
   #status.lose { color: var(--cyan); }
   #status.draw { color: var(--muted); }
+  #thinking-bar {
+    height: 4px; margin: 10px 4px 0; border-radius: 999px;
+    background: linear-gradient(90deg, var(--pink), var(--cyan), var(--pink));
+    background-size: 200% 100%;
+    opacity: 0; transition: opacity 0.25s;
+  }
+  #status.thinking + #thinking-bar { opacity: 1; animation: slide 1.1s linear infinite; }
+  @keyframes slide { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+
+  /* ---------- Board ---------- */
   #board-wrap {
+    margin-top: 12px;
     position: relative;
-    width: min(560px, 94vw);
+    width: 100%;
     aspect-ratio: 1;
-    border-radius: 14px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 0 0 1px var(--line), 0 0 42px rgba(0, 245, 255, 0.12), 0 0 42px rgba(255, 46, 99, 0.10);
+    box-shadow: 0 0 0 1px var(--line-strong), 0 18px 50px rgba(0, 0, 0, 0.5),
+      0 0 42px rgba(0, 245, 255, 0.10), 0 0 42px rgba(255, 46, 99, 0.08);
   }
   canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; cursor: pointer; }
-  .controls, .toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-    margin-top: 12px;
-    width: min(560px, 94vw);
+
+  /* ---------- Toolbar ---------- */
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 14px;
   }
-  .ctl {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-  }
-  .controls select, .controls input, .toolbar button {
-    background: var(--panel2);
+  .toolbar button {
+    flex: 1 1 auto;
+    background: var(--panel-solid);
     color: var(--text);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 14px;
-    font-weight: 600;
-    outline: none;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    padding: 11px 10px;
+    font-family: inherit;
+    font-size: 13.5px; font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
   }
-  .controls input { width: 64px; text-align: center; }
-  .toolbar button { cursor: pointer; }
-  .toolbar button:hover { border-color: var(--cyan); }
-  .toolbar button:disabled { opacity: 0.45; cursor: default; }
+  .toolbar button:hover { border-color: var(--cyan); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 245, 255, 0.12); }
+  .toolbar button:active { transform: translateY(0); }
+  .toolbar button:disabled { opacity: 0.45; cursor: default; transform: none; box-shadow: none; }
   .toolbar button.primary {
     background: linear-gradient(90deg, var(--pink), #D61C4E);
-    border: none;
-    color: #fff;
+    border: none; color: #fff;
+    box-shadow: 0 6px 20px rgba(255, 46, 99, 0.35);
   }
-  .toolbar button.primary:hover { filter: brightness(1.15); }
-  .info {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 12px;
-    width: min(560px, 94vw);
-  }
-  .chip {
+  .toolbar button.primary:hover { filter: brightness(1.12); box-shadow: 0 8px 24px rgba(255, 46, 99, 0.45); }
+
+  /* ---------- Side panel ---------- */
+  aside.panel { display: flex; flex-direction: column; gap: 14px; }
+  .card {
     background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-size: 13px;
-    color: var(--muted);
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    padding: 16px 18px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
   }
-  .chip b { color: var(--text); }
-  #engine-stats {
-    margin-top: 10px;
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    min-height: 18px;
+  .card h2 {
+    font-size: 11.5px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
   }
-  #engine-stats b { color: var(--cyan); }
-  #moves {
-    margin-top: 12px;
-    width: min(560px, 94vw);
-    max-height: 110px;
-    overflow-y: auto;
+  .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+  .score-num { font-size: 28px; font-weight: 900; line-height: 1.1; }
+  .score-num.w { color: var(--pink); }
+  .score-num.l { color: var(--cyan); }
+  .score-num.d { color: var(--muted); }
+  .score-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 3px; }
+  .winrate { margin-top: 12px; font-size: 13px; color: var(--muted); font-weight: 600; text-align: center; }
+  .winrate b { color: var(--text); }
+  .winrate-bar { height: 6px; background: var(--panel2); border-radius: 999px; margin-top: 7px; overflow: hidden; }
+  .winrate-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--pink), var(--pink-soft)); transition: width 0.4s; }
+
+  .field { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; }
+  .field + .field { border-top: 1px solid var(--line); }
+  .field label { font-size: 13.5px; font-weight: 600; color: var(--muted); }
+  .field select, .field input {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--line-strong); border-radius: 9px;
+    padding: 8px 10px; font-family: inherit; font-size: 13.5px; font-weight: 600; outline: none;
+    max-width: 190px;
+  }
+  .field select:focus, .field input:focus { border-color: var(--cyan); }
+  .field input { width: 70px; text-align: center; }
+  .you-chip { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; }
+  .legend { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .legend.x { background: var(--pink); box-shadow: 0 0 8px rgba(255, 46, 99, 0.6); }
+  .legend.o { background: var(--cyan); box-shadow: 0 0 8px rgba(0, 245, 255, 0.6); }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 12px; }
+  .stat { background: var(--panel2); border-radius: 10px; padding: 9px 11px; }
+  .stat .k { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+  .stat .v { font-size: 16px; font-weight: 800; margin-top: 2px; }
+  .stat .v em { font-style: normal; color: var(--cyan); }
+  #engine-stats-empty { font-size: 13.5px; color: var(--muted); }
+
+  .history-wrap { max-height: 220px; overflow-y: auto; border-radius: 10px; }
+  .history-wrap table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .history-wrap th {
+    position: sticky; top: 0; background: var(--panel2);
+    font-size: 11.5px; letter-spacing: 1px; color: var(--muted);
+    text-align: left; padding: 8px 10px; font-weight: 700;
+  }
+  .history-wrap td { padding: 7px 10px; border-top: 1px solid var(--line); font-weight: 600; }
+  .history-wrap tr:last-child td { color: var(--text); }
+  .history-wrap tr:last-child td:first-child { color: var(--cyan); }
+  .history-empty { font-size: 13.5px; color: var(--muted); text-align: center; padding: 12px 0 4px; }
+
+  /* ---------- Rules ---------- */
+  section.rules {
+    width: min(1080px, 100%);
+    margin: 22px auto 0;
     background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--muted);
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    padding: 20px 22px;
+    backdrop-filter: blur(8px);
   }
-  #moves b { color: var(--text); }
-  .legend { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin: 0 3px 0 8px; }
-  .legend.x { background: var(--pink); }
-  .legend.o { background: var(--cyan); }
-  footer { margin-top: 16px; font-size: 12px; color: #55617A; text-align: center; }
+  section.rules h2 { font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+  section.rules ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; }
+  @media (max-width: 700px) { section.rules ul { grid-template-columns: 1fr; } }
+  section.rules li { font-size: 13.5px; color: var(--muted); line-height: 1.55; padding-left: 20px; position: relative; }
+  section.rules li::before { content: "◆"; position: absolute; left: 0; color: var(--cyan); font-size: 10px; top: 3px; }
+  section.rules li b { color: var(--text); }
+
+  footer {
+    width: min(1080px, 100%);
+    margin: 20px auto 0;
+    font-size: 12.5px; color: #55617A; text-align: center; line-height: 1.7;
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>CARO ARENA</h1>
-  <p>Đấu trí với <b>Bot của anh</b> — mạnh như engine cờ caro chuyên nghiệp</p>
+<div class="bg-glow"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark"></span>
+    <div>
+      <h1>CARO ARENA</h1>
+      <p>Đấu trí với <b>Bot của anh</b> — engine cờ caro chuyên nghiệp</p>
+    </div>
+  </div>
+  <span class="badge"><span class="dot"></span>Bot AI • Không cần đăng nhập</span>
 </header>
 
-<div id="status">Đang tải bot…</div>
+<main class="layout">
+  <section class="board-col">
+    <div id="status">Đang tải bot…</div>
+    <div id="thinking-bar"></div>
+    <div id="board-wrap"><canvas id="board"></canvas></div>
+    <div class="toolbar">
+      <button id="btn-new" class="primary">🔄 Ván mới</button>
+      <button id="btn-undo" title="Hoàn tác 1 quân vừa đánh">↩ Hoàn tác</button>
+      <button id="btn-redo" title="Đánh lại nước vừa hoàn tác">↪ Làm lại</button>
+      <button id="btn-hint" title="Bot gợi ý nước tốt nhất cho anh">💡 Gợi ý</button>
+      <button id="btn-stop" title="Dừng bot đang nghĩ, đánh lại nước vừa rồi">⏹ Dừng</button>
+      <button id="btn-flip" title="Xoay bàn cờ 180°">🔃 Lật bàn</button>
+    </div>
+  </section>
 
-<div id="board-wrap"><canvas id="board"></canvas></div>
+  <aside class="panel">
+    <div class="card">
+      <h2>Tỉ số</h2>
+      <div class="score-grid">
+        <div><div class="score-num w" id="score-w">0</div><div class="score-label">Thắng</div></div>
+        <div><div class="score-num l" id="score-l">0</div><div class="score-label">Thua</div></div>
+        <div><div class="score-num d" id="score-d">0</div><div class="score-label">Hòa</div></div>
+      </div>
+      <div class="winrate">Tỉ lệ thắng: <b id="winrate-text">—</b></div>
+      <div class="winrate-bar"><div class="winrate-fill" id="winrate-fill" style="width: 0%"></div></div>
+    </div>
 
-<div class="controls">
-  <label class="ctl">Cấp độ
-    <select id="difficulty" title="Cấp độ bot">
-      <option value="500">Dễ — 0.5s</option>
-      <option value="1500" selected>Trung bình — 1.5s</option>
-      <option value="3500">Khó — 3.5s</option>
-      <option value="6000">Cao thủ — 6s</option>
-    </select>
-  </label>
-  <label class="ctl">Bàn cờ
-    <input id="boardsize" type="number" min="9" max="19" step="1" value="15" title="Cỡ bàn cờ (9–19)">
-  </label>
-  <label class="ctl">Bên
-    <select id="side" title="Bạn cầm quân nào">
-      <option value="1" selected>Bạn đi trước (X)</option>
-      <option value="2">Bạn đi sau (O)</option>
-    </select>
-  </label>
-</div>
+    <div class="card">
+      <h2>Cài đặt trận đấu</h2>
+      <div class="field">
+        <label for="difficulty">Cấp độ</label>
+        <select id="difficulty" title="Cấp độ bot">
+          <option value="500">Dễ — 0.5s</option>
+          <option value="1500" selected>Trung bình — 1.5s</option>
+          <option value="3500">Khó — 3.5s</option>
+          <option value="6000">Cao thủ — 6s</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="boardsize">Cỡ bàn cờ</label>
+        <input id="boardsize" type="number" min="9" max="19" step="1" value="15" title="Cỡ bàn cờ (9–19)">
+      </div>
+      <div class="field">
+        <label for="side">Bên của bạn</label>
+        <select id="side" title="Bạn cầm quân nào">
+          <option value="1" selected>Đi trước (X)</option>
+          <option value="2">Đi sau (O)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Quân của bạn</label>
+        <span class="you-chip"><span class="legend x" id="legend-you"></span>Bạn <b id="you-are">X</b><span class="legend o" id="legend-bot"></span>Bot</span>
+      </div>
+    </div>
 
-<div class="toolbar">
-  <button id="btn-new" class="primary">🔄 Ván mới</button>
-  <button id="btn-undo" title="Hoàn tác 1 quân vừa đánh">↩ Hoàn tác</button>
-  <button id="btn-redo" title="Đánh lại nước vừa hoàn tác">↪ Làm lại</button>
-  <button id="btn-hint" title="Bot gợi ý nước tốt nhất cho anh">💡 Gợi ý</button>
-  <button id="btn-stop" title="Dừng bot đang nghĩ, đánh lại nước vừa rồi">⏹ Dừng</button>
-  <button id="btn-flip" title="Xoay bàn cờ 180°">🔃 Lật bàn</button>
-</div>
+    <div class="card">
+      <h2>Bot đang nghĩ</h2>
+      <div id="engine-stats"><span id="engine-stats-empty">Chưa có dữ liệu — đánh một nước để xem bot tính toán.</span></div>
+    </div>
 
-<div class="info">
-  <span class="chip">Thắng <b id="score-w">0</b></span>
-  <span class="chip">Thua <b id="score-l">0</b></span>
-  <span class="chip">Hòa <b id="score-d">0</b></span>
-  <span class="chip"><span class="legend x" id="legend-you"></span>Bạn <b id="you-are">X</b><span class="legend o" id="legend-bot"></span>Bot</span>
-</div>
+    <div class="card">
+      <h2>Lịch sử nước đi</h2>
+      <div class="history-wrap">
+        <table>
+          <thead><tr><th style="width: 44px">#</th><th>X (hồng)</th><th>O (xanh)</th></tr></thead>
+          <tbody id="moves-body"></tbody>
+        </table>
+        <div class="history-empty" id="moves-empty">Chưa có nước đi nào.</div>
+      </div>
+    </div>
+  </aside>
+</main>
 
-<div id="engine-stats"></div>
-<div id="moves"><b>Lịch sử nước đi</b><br><span id="moves-list">—</span></div>
+<section class="rules">
+  <h2>Luật chơi</h2>
+  <ul>
+    <li><b>5 quân liên tiếp</b> (ngang, dọc hoặc chéo) là thắng — luật tự do.</li>
+    <li>Anh đi <b>X (hồng)</b>, bot đi <b>O (xanh)</b>. Đổi bên ở phần Cài đặt.</li>
+    <li>Bấm <b>💡 Gợi ý</b> để bot chỉ nước tốt nhất cho anh.</li>
+    <li><b>↩ Hoàn tác</b> gỡ đúng 1 quân, <b>↪ Làm lại</b> đánh lại nước đó.</li>
+    <li>Cấp độ càng cao, bot nghĩ càng lâu và càng mạnh. <b>Cao thủ: 6 giây/nước.</b></li>
+    <li>Đổi cỡ bàn (9–19) hoặc bên đi sẽ bắt đầu ván mới.</li>
+  </ul>
+</section>
 
-<footer>Caro Arena • Luật tự do — 5 quân thẳng hàng là thắng • Chạy hoàn toàn trên trình duyệt của bạn</footer>
+<footer>Caro Arena • Chạy hoàn toàn trên trình duyệt của bạn — không cần đăng nhập, không gửi dữ liệu lên máy chủ.</footer>
 
 <script>
 (function () {
@@ -206,7 +353,8 @@
   const ctx = canvas.getContext('2d');
   const statusEl = document.getElementById('status');
   const statsEl = document.getElementById('engine-stats');
-  const movesListEl = document.getElementById('moves-list');
+  const movesBodyEl = document.getElementById('moves-body');
+  const movesEmptyEl = document.getElementById('moves-empty');
   const diffEl = document.getElementById('difficulty');
   const sideEl = document.getElementById('side');
   const sizeEl = document.getElementById('boardsize');
@@ -221,7 +369,10 @@
   let hover = null;
   let lastMove = null;
   let hint = null;
+  let winLine = null;   // [{x,y}...] 5 stones of the winning line
   let pendingReply = null; // {kind:'botmove'|'discard'|'hint'}
+  let anim = null;      // {x, y, start} stone drop animation
+  let animScale = 1;
   let score = { w: 0, l: 0, d: 0 };
   try {
     const s = JSON.parse(localStorage.getItem('caro-arena-score') || '{}');
@@ -238,6 +389,10 @@
     document.getElementById('score-w').textContent = score.w;
     document.getElementById('score-l').textContent = score.l;
     document.getElementById('score-d').textContent = score.d;
+    const total = score.w + score.l + score.d;
+    const rate = total ? Math.round(score.w / total * 100) : 0;
+    document.getElementById('winrate-text').textContent = total ? rate + '%' : '—';
+    document.getElementById('winrate-fill').style.width = (total ? rate : 0) + '%';
   }
   function setStatus(text, cls) {
     statusEl.textContent = text;
@@ -375,6 +530,20 @@
   function cell() { return canvas.getBoundingClientRect().width / (SIZE + 1); }
   function toDisplay(x, y) { return flip ? { x: SIZE - 1 - x, y: SIZE - 1 - y } : { x: x, y: y }; }
   function fromDisplay(dx, dy) { return flip ? { x: SIZE - 1 - dx, y: SIZE - 1 - dy } : { x: dx, y: dy }; }
+  function easeOutBack(t) { const c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }
+  function playStoneAnim(x, y) {
+    anim = { x: x, y: y, start: performance.now() };
+    animScale = 0.4;
+    requestAnimationFrame(animFrame);
+  }
+  function animFrame(now) {
+    if (!anim) return;
+    const t = Math.min(1, (now - anim.start) / 180);
+    animScale = easeOutBack(t);
+    draw();
+    if (t < 1) requestAnimationFrame(animFrame);
+    else { anim = null; animScale = 1; draw(); }
+  }
   function draw() {
     const rect = canvas.getBoundingClientRect();
     const W = rect.width, c = cell(), pad = c;
@@ -407,15 +576,34 @@
       ctx.fillText(COLS[bi], pad + i * c, pad - c * 0.62);
       ctx.fillText(String(bi + 1), pad - c * 0.62, pad + i * c);
     }
+    // winning line (under the stones, glowing)
+    if (winLine && winLine.length >= 2) {
+      const a = toDisplay(winLine[0].x, winLine[0].y);
+      const b = toDisplay(winLine[winLine.length - 1].x, winLine[winLine.length - 1].y);
+      ctx.save();
+      ctx.strokeStyle = '#FBFF12';
+      ctx.lineWidth = c * 0.16;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = '#FBFF12';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.moveTo(pad + a.x * c, pad + a.y * c);
+      ctx.lineTo(pad + b.x * c, pad + b.y * c);
+      ctx.stroke();
+      ctx.restore();
+    }
     // hover preview
-    if (hover && !gameOver && !botThinking && board[hover.y][hover.x] === 0) {
+    if (hover && !gameOver && !botThinking && board[hover.y] && board[hover.y][hover.x] === 0) {
       ctx.globalAlpha = 0.45;
-      drawStone(hover.x, hover.y, humanSide);
+      drawStone(hover.x, hover.y, humanSide, 1);
       ctx.globalAlpha = 1;
     }
     // stones
     for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
-      if (board[y][x] !== 0) drawStone(x, y, board[y][x]);
+      if (board[y][x] !== 0) {
+        const scale = (anim && anim.x === x && anim.y === y) ? animScale : 1;
+        drawStone(x, y, board[y][x], scale);
+      }
     }
     // hint ring
     if (hint) {
@@ -438,10 +626,11 @@
       ctx.stroke();
     }
   }
-  function drawStone(x, y, p) {
+  function drawStone(x, y, p, scale) {
     const c = cell(), pad = c;
     const d = toDisplay(x, y);
-    const cx = pad + d.x * c, cy = pad + d.y * c, r = c * 0.44;
+    const cx = pad + d.x * c, cy = pad + d.y * c, r = c * 0.44 * (scale || 1);
+    if (r <= 0) return;
     const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, r * 0.1, cx, cy, r);
     if (p === 1) { g.addColorStop(0, '#FF7AA8'); g.addColorStop(0.55, '#FF2E63'); g.addColorStop(1, '#B3123F'); }
     else { g.addColorStop(0, '#B8FBFF'); g.addColorStop(0.55, '#00F5FF'); g.addColorStop(1, '#0093A6'); }
@@ -470,37 +659,58 @@
     pendingReply = null;
     lastMove = null;
     hint = null;
+    winLine = null;
     hover = null;
-    movesListEl.textContent = '—';
-    statsEl.textContent = '';
+    anim = null;
+    renderMoves();
+    statsEl.innerHTML = '<span id="engine-stats-empty">Chưa có dữ liệu — đánh một nước để xem bot tính toán.</span>';
     draw();
   }
   function checkWin(x, y, p) {
     const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
     for (let d = 0; d < dirs.length; d++) {
       const dx = dirs[d][0], dy = dirs[d][1];
-      let n = 1;
-      for (let s = 1; s < 5; s++) { const nx = x + dx * s, ny = y + dy * s; if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || board[ny][nx] !== p) break; n++; }
-      for (let s = 1; s < 5; s++) { const nx = x - dx * s, ny = y - dy * s; if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || board[ny][nx] !== p) break; n++; }
-      if (n >= 5) return true;
+      const run = [{ x: x, y: y }];
+      for (let s = 1; s < 5; s++) { const nx = x + dx * s, ny = y + dy * s; if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || board[ny][nx] !== p) break; run.push({ x: nx, y: ny }); }
+      for (let s = 1; s < 5; s++) { const nx = x - dx * s, ny = y - dy * s; if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || board[ny][nx] !== p) break; run.unshift({ x: nx, y: ny }); }
+      if (run.length >= 5) {
+        // take a window of 5 containing the placed stone
+        let idx = -1;
+        for (let i = 0; i < run.length; i++) { if (run[i].x === x && run[i].y === y) { idx = i; break; } }
+        const start = Math.max(0, Math.min(idx, run.length - 5));
+        return { win: true, line: run.slice(start, start + 5) };
+      }
     }
-    return false;
+    return { win: false, line: null };
   }
   function placeStone(x, y, p) {
     board[y][x] = p;
     moves.push({ x: x, y: y, p: p });
     lastMove = { x: x, y: y };
     renderMoves();
+    playStoneAnim(x, y);
+    const res = checkWin(x, y, p);
+    if (res.win) winLine = res.line;
     draw();
-    return checkWin(x, y, p);
+    return res.win;
   }
   function renderMoves() {
-    if (!moves.length) { movesListEl.textContent = '—'; return; }
-    movesListEl.innerHTML = moves.map(function (m, i) {
-      const label = COLS[m.x] + (m.y + 1);
-      return (i % 2 === 0 ? '<b>' + (i / 2 + 1) + '.</b> ' : '') + (m.p === 1 ? 'X' : 'O') + ' ' + label;
-    }).join(' &nbsp; ');
-    movesListEl.parentElement.scrollTop = movesListEl.parentElement.scrollHeight;
+    if (!moves.length) {
+      movesBodyEl.innerHTML = '';
+      movesEmptyEl.style.display = '';
+      return;
+    }
+    movesEmptyEl.style.display = 'none';
+    let html = '';
+    for (let i = 0; i < moves.length; i += 2) {
+      const n = i / 2 + 1;
+      const xm = COLS[moves[i].x] + (moves[i].y + 1);
+      const om = moves[i + 1] ? COLS[moves[i + 1].x] + (moves[i + 1].y + 1) : '';
+      html += '<tr><td>' + n + '</td><td>' + xm + '</td><td>' + om + '</td></tr>';
+    }
+    movesBodyEl.innerHTML = html;
+    const wrap = movesBodyEl.closest('.history-wrap');
+    if (wrap) wrap.scrollTop = wrap.scrollHeight;
   }
   function endGame(result) {
     gameOver = true;
@@ -509,6 +719,7 @@
     else if (result === 'lose') { score.l++; setStatus('Bot thắng. Phục thù ván nữa không anh?', 'lose'); }
     else { score.d++; setStatus('Hòa! Căng như dây đàn.', 'draw'); }
     saveScore();
+    draw();
   }
 
   // ---------- Engine protocol ----------
@@ -546,8 +757,19 @@
     if (line.indexOf('MESSAGE') === 0) {
       const sm = line.match(/Speed (\d+) \| Depth (\S+) \| Eval (-?\d+) \| Node (\S+) \| Time (\d+)ms/);
       const dm = line.match(/Depth (\d+-\d+) \| Eval (-?\d+) \| Time (\d+)ms/);
-      if (sm) statsEl.innerHTML = 'Bot: độ sâu <b>' + sm[2] + '</b> • đánh giá <b>' + sm[3] + '</b> • <b>' + sm[1] + '</b> nút/giây • <b>' + sm[4] + '</b> nút • <b>' + sm[5] + 'ms</b>';
-      else if (dm) statsEl.innerHTML = 'Bot đang nghĩ… độ sâu <b>' + dm[1] + '</b> • đánh giá <b>' + dm[2] + '</b>';
+      if (sm) {
+        statsEl.innerHTML = '<div class="stat-grid">' +
+          '<div class="stat"><div class="k">Độ sâu</div><div class="v"><em>' + sm[2] + '</em></div></div>' +
+          '<div class="stat"><div class="k">Đánh giá</div><div class="v"><em>' + sm[3] + '</em></div></div>' +
+          '<div class="stat"><div class="k">Tốc độ</div><div class="v">' + sm[1] + ' nút/s</div></div>' +
+          '<div class="stat"><div class="k">Thời gian</div><div class="v">' + sm[5] + ' ms</div></div>' +
+          '</div>';
+      } else if (dm) {
+        statsEl.innerHTML = '<div class="stat-grid">' +
+          '<div class="stat"><div class="k">Độ sâu</div><div class="v"><em>' + dm[1] + '</em></div></div>' +
+          '<div class="stat"><div class="k">Đánh giá</div><div class="v"><em>' + dm[2] + '</em></div></div>' +
+          '</div>';
+      }
     }
   }
   // (Re)start the engine and bring it to the current position.
@@ -588,7 +810,6 @@
     botThinking = true;
     pendingReply = { kind: 'botmove' };
     setStatus('Bot đang nghĩ…', 'thinking');
-    statsEl.textContent = '';
     Engine.send('TURN ' + x + ',' + y);
   }
 
@@ -638,6 +859,7 @@
     redoStack.push(mv);
     lastMove = moves.length ? moves[moves.length - 1] : null;
     hint = null;
+    winLine = null;
     gameOver = false;
     renderMoves();
     draw();
@@ -651,6 +873,7 @@
     moves.push(mv);
     lastMove = mv;
     hint = null;
+    winLine = null;
     gameOver = false;
     renderMoves();
     draw();
@@ -679,6 +902,7 @@
       redoStack.push(mv);
       lastMove = moves.length ? moves[moves.length - 1] : null;
       hint = null;
+      winLine = null;
       renderMoves();
       draw();
     }
