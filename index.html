@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Caro Arena — Đấu trí với Bot của anh</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0B0F1A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caro Arena">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0F1A'/%3E%3Ccircle cx='23' cy='32' r='13' fill='%23FF2E63'/%3E%3Ccircle cx='43' cy='32' r='13' fill='%2300F5FF'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,6 +90,14 @@
   }
   .badge .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
     background: #2BD97B; box-shadow: 0 0 8px #2BD97B; margin-right: 7px; vertical-align: 1px; }
+  #btn-install {
+    font-family: inherit; font-size: 13px; font-weight: 700; color: #fff;
+    background: linear-gradient(90deg, var(--pink), #D61C4E);
+    border: none; border-radius: 999px; padding: 10px 16px; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 46, 99, 0.35);
+    transition: transform 0.12s, filter 0.12s;
+  }
+  #btn-install:hover { filter: brightness(1.12); transform: translateY(-1px); }
 
   /* ---------- Layout ---------- */
   main.layout {
@@ -255,6 +270,7 @@
     </div>
   </div>
   <span class="badge"><span class="dot"></span>Bot AI • Không cần đăng nhập</span>
+  <button id="btn-install" hidden>📲 Cài đặt app</button>
 </header>
 
 <main class="layout">
@@ -923,6 +939,32 @@
     newGame();
   });
   window.addEventListener('resize', setupCanvas);
+
+  // ---------- PWA: service worker + install prompt ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/service-worker.js').catch(function () {});
+    });
+  }
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('btn-install');
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.hidden = false;
+  });
+  installBtn.addEventListener('click', function () {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () {
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    });
+  });
+  window.addEventListener('appinstalled', function () {
+    deferredPrompt = null;
+    installBtn.hidden = true;
+  });
 
   // ---------- Boot ----------
   saveScore();
