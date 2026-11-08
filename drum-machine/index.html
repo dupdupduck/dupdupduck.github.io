@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Beat Farm — Máy Tạo Nhịp & Trạm Phối Beat Điện Tử</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"></path>
+            <path d="M6 16h.01M10 16h.01M14 16h.01M18 16h.01"></path>
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">BEAT FARM</h1>
+          <p class="brand-subtitle">Trạm Phối Beat Điện Tử • Web Audio Synthesizer</p>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <span class="status-indicator" id="statusIndicator">
+          <span class="status-dot"></span>
+          <span class="status-text" id="statusText">Sẵn sàng</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- Master Control Deck -->
+    <section class="control-deck" aria-label="Bảng điều khiển trung tâm">
+      <!-- Transport Buttons -->
+      <div class="control-card transport-card">
+        <button id="playBtn" class="btn btn-primary btn-play" aria-label="Phát hoặc Dừng nhịp">
+          <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="6 3 20 12 6 21 6 3"></polygon>
+          </svg>
+          <svg class="icon-stop" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+            <rect x="5" y="5" width="14" height="14" rx="2"></rect>
+          </svg>
+          <span id="playBtnText">Phát</span>
+        </button>
+
+        <button id="clearBtn" class="btn btn-secondary btn-clear" title="Xóa tất cả các bước trong bộ phối nhịp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+          </svg>
+          <span>Xóa nhịp</span>
+        </button>
+      </div>
+
+      <!-- Tempo (BPM) Slider -->
+      <div class="control-card tempo-card">
+        <div class="control-card-header">
+          <label for="bpmSlider" class="control-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Nhịp (BPM)
+          </label>
+          <span class="badge-value" id="bpmDisplay">120</span>
+        </div>
+        <div class="slider-stepper-group">
+          <button id="bpmMinus" class="btn-step" aria-label="Giảm 1 BPM">-</button>
+          <input type="range" id="bpmSlider" min="60" max="180" value="120" step="1" aria-label="Điều chỉnh tốc độ nhịp">
+          <button id="bpmPlus" class="btn-step" aria-label="Tăng 1 BPM">+</button>
+        </div>
+      </div>
+
+      <!-- Master Volume Slider -->
+      <div class="control-card volume-card">
+        <div class="control-card-header">
+          <label for="volumeSlider" class="control-label">
+            <button id="muteBtn" class="btn-icon-mute" aria-label="Bật/Tắt tiếng">
+              <svg id="iconVolume" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+              <svg id="iconMuted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <line x1="23" y1="9" x2="17" y2="15"></line>
+                <line x1="17" y1="9" x2="23" y2="15"></line>
+              </svg>
+            </button>
+            Âm lượng
+          </label>
+          <span class="badge-value" id="volumeDisplay">80%</span>
+        </div>
+        <div class="slider-group">
+          <input type="range" id="volumeSlider" min="0" max="100" value="80" step="1" aria-label="Điều chỉnh âm lượng tổng">
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="control-card presets-card">
+        <div class="control-card-header">
+          <span class="control-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+            Mẫu sẵn (Presets)
+          </span>
+        </div>
+        <div class="preset-buttons">
+          <button class="btn btn-preset" data-preset="boombap">
+            <span class="preset-name">Boom Bap</span>
+            <span class="preset-bpm">90 BPM</span>
+          </button>
+          <button class="btn btn-preset" data-preset="trap">
+            <span class="preset-name">Trap</span>
+            <span class="preset-bpm">140 BPM</span>
+          </button>
+          <button class="btn btn-preset" data-preset="house">
+            <span class="preset-name">House</span>
+            <span class="preset-bpm">124 BPM</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: 16-Step Sequencer -->
+    <section class="sequencer-section" aria-label="Bộ phối nhịp 16 bước">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2 class="section-title">Bộ Phối Nhịp 16 Bước</h2>
+          <span class="section-tag">Kick • Snare • Hi-Hat • Clap</span>
+        </div>
+        <div class="sequencer-legend">
+          <span class="legend-item"><span class="legend-dot dot-cyan"></span> Kick</span>
+          <span class="legend-item"><span class="legend-dot dot-magenta"></span> Snare</span>
+          <span class="legend-item"><span class="legend-dot dot-amber"></span> Hi-Hat</span>
+          <span class="legend-item"><span class="legend-dot dot-lime"></span> Clap</span>
+        </div>
+      </div>
+
+      <div class="sequencer-wrapper">
+        <div class="sequencer-table" id="sequencerTable">
+          <!-- Step Numbers Header -->
+          <div class="sequencer-row step-numbers-row">
+            <div class="track-header-spacer">Nhạc cụ</div>
+            <div class="steps-grid" id="stepNumbersHeader">
+              <!-- Dynamically populated 1..16 -->
+            </div>
+          </div>
+
+          <!-- Sequencer Tracks -->
+          <div class="sequencer-row track-row" data-track="kick">
+            <div class="track-info">
+              <button class="track-preview-btn btn-audition" data-sound="kick" title="Nghe thử tiếng Kick">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="6 4 18 12 6 20 6 4"></polygon>
+                </svg>
+              </button>
+              <div class="track-labels">
+                <span class="track-name">Kick</span>
+                <span class="track-sub">Trống Bass</span>
+              </div>
+            </div>
+            <div class="steps-grid track-steps" data-track="kick"></div>
+          </div>
+
+          <div class="sequencer-row track-row" data-track="snare">
+            <div class="track-info">
+              <button class="track-preview-btn btn-audition" data-sound="snare" title="Nghe thử tiếng Snare">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="6 4 18 12 6 20 6 4"></polygon>
+                </svg>
+              </button>
+              <div class="track-labels">
+                <span class="track-name">Snare</span>
+                <span class="track-sub">Trống Lẩy</span>
+              </div>
+            </div>
+            <div class="steps-grid track-steps" data-track="snare"></div>
+          </div>
+
+          <div class="sequencer-row track-row" data-track="hihat">
+            <div class="track-info">
+              <button class="track-preview-btn btn-audition" data-sound="hihat" title="Nghe thử tiếng Hi-Hat">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="6 4 18 12 6 20 6 4"></polygon>
+                </svg>
+              </button>
+              <div class="track-labels">
+                <span class="track-name">Hi-Hat</span>
+                <span class="track-sub">Xập Xõa</span>
+              </div>
+            </div>
+            <div class="steps-grid track-steps" data-track="hihat"></div>
+          </div>
+
+          <div class="sequencer-row track-row" data-track="clap">
+            <div class="track-info">
+              <button class="track-preview-btn btn-audition" data-sound="clap" title="Nghe thử tiếng Clap">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="6 4 18 12 6 20 6 4"></polygon>
+                </svg>
+              </button>
+              <div class="track-labels">
+                <span class="track-name">Clap</span>
+                <span class="track-sub">Vỗ Tay</span>
+              </div>
+            </div>
+            <div class="steps-grid track-steps" data-track="clap"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: 4x4 Grid of Drum Pads -->
+    <section class="pads-section" aria-label="Bàn gõ trống 4x4">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2 class="section-title">Bàn Gõ Trống 4x4</h2>
+          <span class="section-tag">Chạm hoặc nhấn phím để phát ngay lập tức</span>
+        </div>
+        <div class="shortcut-tip">
+          <span class="tip-kbd">Phím tắt:</span> 1-4 • Q-R • A-F • Z-V • Space để Phát/Dừng
+        </div>
+      </div>
+
+      <div class="pads-grid" id="padsGrid">
+        <!-- Row 1: Core rhythm -->
+        <button class="drum-pad color-cyan" data-sound="kick" data-key="1">
+          <span class="pad-key-badge">1</span>
+          <span class="pad-title">Kick</span>
+          <span class="pad-vn">Trống Bass</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-magenta" data-sound="snare" data-key="2">
+          <span class="pad-key-badge">2</span>
+          <span class="pad-title">Snare</span>
+          <span class="pad-vn">Trống Lẩy</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-amber" data-sound="hihat" data-key="3">
+          <span class="pad-key-badge">3</span>
+          <span class="pad-title">Hi-Hat</span>
+          <span class="pad-vn">Xập Xõa Đóng</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-lime" data-sound="clap" data-key="4">
+          <span class="pad-key-badge">4</span>
+          <span class="pad-title">Clap</span>
+          <span class="pad-vn">Vỗ Tay</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <!-- Row 2: Acoustic & Metallic -->
+        <button class="drum-pad color-blue" data-sound="tom" data-key="q">
+          <span class="pad-key-badge">Q</span>
+          <span class="pad-title">Tom</span>
+          <span class="pad-vn">Trống Tom</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-cyan" data-sound="rim" data-key="w">
+          <span class="pad-key-badge">W</span>
+          <span class="pad-title">Rim</span>
+          <span class="pad-vn">Gõ Vành</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-amber" data-sound="crash" data-key="e">
+          <span class="pad-key-badge">E</span>
+          <span class="pad-title">Crash</span>
+          <span class="pad-vn">Chũm Chọe</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-lime" data-sound="cowbell" data-key="r">
+          <span class="pad-key-badge">R</span>
+          <span class="pad-title">Cowbell</span>
+          <span class="pad-vn">Chuông Bò</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <!-- Row 3: Modern & Shaker -->
+        <button class="drum-pad color-amber" data-sound="openhat" data-key="a">
+          <span class="pad-key-badge">A</span>
+          <span class="pad-title">Open Hat</span>
+          <span class="pad-vn">Xập Xõa Mở</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-lime" data-sound="shaker" data-key="s">
+          <span class="pad-key-badge">S</span>
+          <span class="pad-title">Shaker</span>
+          <span class="pad-vn">Lắc Nhịp</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-cyan" data-sound="kick2" data-key="d">
+          <span class="pad-key-badge">D</span>
+          <span class="pad-title">Kick 2</span>
+          <span class="pad-vn">Sub 808</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-magenta" data-sound="snare2" data-key="f">
+          <span class="pad-key-badge">F</span>
+          <span class="pad-title">Snare 2</span>
+          <span class="pad-vn">Trap Snare</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <!-- Row 4: Synth & Special -->
+        <button class="drum-pad color-blue" data-sound="perc" data-key="z">
+          <span class="pad-key-badge">Z</span>
+          <span class="pad-title">Perc</span>
+          <span class="pad-vn">Gõ Gỗ</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-purple" data-sound="bass" data-key="x">
+          <span class="pad-key-badge">X</span>
+          <span class="pad-title">Bass</span>
+          <span class="pad-vn">Synth Bass Hit</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-cyan" data-sound="fx" data-key="c">
+          <span class="pad-key-badge">C</span>
+          <span class="pad-title">FX</span>
+          <span class="pad-vn">Laser Zap</span>
+          <span class="pad-flash"></span>
+        </button>
+
+        <button class="drum-pad color-purple" data-sound="vocal" data-key="v">
+          <span class="pad-key-badge">V</span>
+          <span class="pad-title">Vocal chop</span>
+          <span class="pad-vn">Giọng Hey!</span>
+          <span class="pad-flash"></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p><strong>Beat Farm</strong> • Tự tổng hợp âm thanh bằng Web Audio API thuần túy (không dùng file âm thanh bên ngoài).</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
