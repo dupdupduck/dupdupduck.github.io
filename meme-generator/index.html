@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Meme Farm 🚜 - Nông Trại Chế Ảnh Meme Siêu Mặn</title>
+  <meta name="description" content="Trang web chế meme tương tác Meme Farm. Tải ảnh của bạn hoặc chọn các mẫu meme vẽ tay độc đáo, thêm chữ tiếng Việt mặn mòi, tải ảnh 1080x1080 chuẩn Instagram/TikTok.">
+  <meta name="theme-color" content="#0d1117">
+
+  <!-- Google Fonts: Anton (Impact style), Comic Neue, Plus Jakarta Sans, Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Comic+Neue:wght@700&family=Montserrat:wght@800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-group">
+        <span class="logo-icon" aria-hidden="true">🚜</span>
+        <div class="logo-text">
+          <h1 class="logo-title">Meme Farm</h1>
+          <p class="logo-subtitle">Nông Trại Chế Meme Việt Nam</p>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="badge-dot"></span>
+        <span>1080×1080 Vuông • Sắc Nét</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="main-layout">
+    <!-- Preview Section (Sticky on desktop, top on mobile) -->
+    <section class="preview-section" aria-label="Xem trước Meme">
+      <div class="canvas-card">
+        <div class="canvas-wrapper" id="canvas-dropzone">
+          <canvas id="meme-canvas" width="1080" height="1080" aria-label="Khung vẽ Meme"></canvas>
+          
+          <!-- Drag-over hint overlay -->
+          <div class="canvas-drag-overlay" id="canvas-drag-overlay">
+            <span class="drag-icon">📥</span>
+            <span class="drag-text">Thả ảnh vào đây để chế meme ngay!</span>
+          </div>
+
+          <div class="canvas-loading-overlay" id="canvas-loading" style="display: none;">
+            <div class="spinner"></div>
+            <span>Đang vẽ meme...</span>
+          </div>
+        </div>
+
+        <!-- Primary Action Buttons under Canvas -->
+        <div class="preview-actions">
+          <button id="btn-download" class="btn btn-primary" title="Tải ảnh PNG độ phân giải cao 1080x1080">
+            <span class="btn-icon">💾</span>
+            <span class="btn-text">Tải ảnh xuống</span>
+          </button>
+          <button id="btn-share" class="btn btn-secondary" title="Chia sẻ meme lên mạng xã hội hoặc sao chép">
+            <span class="btn-icon">📤</span>
+            <span class="btn-text">Chia sẻ</span>
+          </button>
+        </div>
+
+        <div class="secondary-actions">
+          <button id="btn-random" class="btn btn-accent" title="Chọn ngẫu nhiên một câu caption tiếng Việt siêu mặn">
+            <span class="btn-icon">🎲</span>
+            <span class="btn-text">Ngẫu nhiên</span>
+          </button>
+          <button id="btn-clear" class="btn btn-outline" title="Xóa trắng chữ trên và chữ dưới">
+            <span class="btn-icon">🗑️</span>
+            <span class="btn-text">Xóa chữ</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls Section -->
+    <section class="controls-section" aria-label="Bảng điều khiển">
+      <!-- Section 1: Chọn Nguồn Ảnh -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <span class="panel-step">1</span>
+          <h2 class="panel-title">Nguồn Ảnh Meme</h2>
+        </div>
+
+        <!-- Source Mode Switcher -->
+        <div class="tab-switch" role="tablist">
+          <button class="tab-btn active" id="tab-templates" role="tab" aria-selected="true" data-tab="templates">
+            🎨 6 Mẫu Có Sẵn
+          </button>
+          <button class="tab-btn" id="tab-upload" role="tab" aria-selected="false" data-tab="upload">
+            📁 Tải Ảnh Của Bạn
+          </button>
+        </div>
+
+        <!-- Tab 1: 6 Built-in Templates Grid -->
+        <div class="tab-content" id="content-templates">
+          <p class="section-hint">Chọn 1 trong 6 nhân vật meme được vẽ bằng Canvas nguyên bản:</p>
+          <div class="templates-grid" id="templates-grid">
+            <!-- 6 Templates dynamically populated / rendered with mini canvases -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Custom Upload Zone -->
+        <div class="tab-content hidden" id="content-upload">
+          <div class="upload-dropzone" id="upload-dropzone">
+            <input type="file" id="file-input" accept="image/*" class="file-input-hidden" aria-label="Tải ảnh lên">
+            <div class="dropzone-content">
+              <span class="dropzone-icon">🖼️</span>
+              <p class="dropzone-title">Kéo & thả ảnh vào đây</p>
+              <p class="dropzone-subtitle">hoặc bấm vào khung để duyệt file từ máy</p>
+              <button type="button" class="btn btn-sm btn-outline mt-2" id="btn-browse-file">
+                📂 Chọn ảnh từ thiết bị
+              </button>
+            </div>
+          </div>
+
+          <!-- Uploaded Image Options -->
+          <div class="uploaded-options" id="uploaded-options" style="display: none;">
+            <div class="option-row">
+              <span class="option-label">Căn chỉnh ảnh tải lên:</span>
+              <div class="segmented-control" id="fit-mode-control">
+                <button type="button" class="segment-btn active" data-fit="cover">Lấp đầy (Cover)</button>
+                <button type="button" class="segment-btn" data-fit="contain">Trọn vẹn (Contain)</button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-ghost text-accent" id="btn-revert-template">
+              ↩️ Dùng lại mẫu vẽ có sẵn
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Soạn Chữ Meme -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <span class="panel-step">2</span>
+          <h2 class="panel-title">Soạn Chữ Meme</h2>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label-row">
+            <label for="input-top-text" class="form-label">Chữ Trên (Top Text)</label>
+            <button type="button" class="btn-inline-clear" id="btn-clear-top" title="Xóa chữ trên">Xóa</button>
+          </div>
+          <div class="input-wrapper">
+            <span class="input-prefix">⬆️</span>
+            <input type="text" id="input-top-text" class="text-input" 
+              placeholder="VD: KHI SẾP BẢO 'TASK NÀY DỄ LẮM EM'..." 
+              autocomplete="off" spellcheck="false" maxlength="120">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label-row">
+            <label for="input-bottom-text" class="form-label">Chữ Dưới (Bottom Text)</label>
+            <button type="button" class="btn-inline-clear" id="btn-clear-bottom" title="Xóa chữ dưới">Xóa</button>
+          </div>
+          <div class="input-wrapper">
+            <span class="input-prefix">⬇️</span>
+            <input type="text" id="input-bottom-text" class="text-input" 
+              placeholder="VD: VÀ ĐÂY LÀ NGÀY THỨ 7 OT TỚI 2H SÁNG" 
+              autocomplete="off" spellcheck="false" maxlength="120">
+          </div>
+        </div>
+
+        <!-- Quick Caption Inspiration Pills -->
+        <div class="caption-pills-container">
+          <span class="caption-pills-label">💡 Gợi ý nhanh:</span>
+          <div class="caption-pills-scroll" id="caption-pills">
+            <!-- Injected by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Tùy Chỉnh Kiểu Chữ & Màu Sắc -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <span class="panel-step">3</span>
+          <h2 class="panel-title">Tùy Chỉnh Phong Cách</h2>
+        </div>
+
+        <!-- Font Choice -->
+        <div class="form-group">
+          <label class="form-label">Phông Chữ (Font)</label>
+          <div class="font-selector-grid" id="font-selector">
+            <button type="button" class="font-card active" data-font="impact">
+              <span class="font-sample font-sample-impact">IMPACT</span>
+              <span class="font-desc">Kinh điển • Siêu đậm</span>
+            </button>
+            <button type="button" class="font-card" data-font="arial">
+              <span class="font-sample font-sample-arial">ARIAL</span>
+              <span class="font-desc">Hiện đại • Rõ ràng</span>
+            </button>
+            <button type="button" class="font-card" data-font="comic">
+              <span class="font-sample font-sample-comic">COMIC</span>
+              <span class="font-desc">Hài hước • Vui nhộn</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Font Size Slider -->
+        <div class="form-group">
+          <div class="slider-header">
+            <label for="slider-font-size" class="form-label">Cỡ Chữ (Font Size)</label>
+            <span class="slider-badge" id="badge-font-size">68px</span>
+          </div>
+          <div class="slider-container">
+            <span class="slider-min">A</span>
+            <input type="range" id="slider-font-size" min="36" max="110" value="68" step="2" class="range-slider">
+            <span class="slider-max">A</span>
+          </div>
+          <div class="quick-size-buttons">
+            <button type="button" class="btn-chip" data-size="46">Nhỏ</button>
+            <button type="button" class="btn-chip" data-size="64">Vừa</button>
+            <button type="button" class="btn-chip active" data-size="76">Lớn</button>
+            <button type="button" class="btn-chip" data-size="94">Cực đại</button>
+          </div>
+        </div>
+
+        <!-- Text Color & Stroke -->
+        <div class="style-row-grid">
+          <!-- Text Color Picker -->
+          <div class="form-group">
+            <label for="color-picker" class="form-label">Màu Chữ</label>
+            <div class="color-picker-box">
+              <input type="color" id="color-picker" value="#ffffff" class="native-color-input" title="Chọn mã màu tùy thích">
+              <span class="color-hex-label" id="color-hex-label">#FFFFFF</span>
+            </div>
+            <div class="color-swatches" id="color-swatches">
+              <button type="button" class="color-dot active" data-color="#ffffff" style="background:#ffffff;" title="Trắng"></button>
+              <button type="button" class="color-dot" data-color="#facc15" style="background:#facc15;" title="Vàng tươi"></button>
+              <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444;" title="Đỏ lửa"></button>
+              <button type="button" class="color-dot" data-color="#22c55e" style="background:#22c55e;" title="Xanh lá"></button>
+              <button type="button" class="color-dot" data-color="#38bdf8" style="background:#38bdf8;" title="Xanh dương"></button>
+              <button type="button" class="color-dot" data-color="#000000" style="background:#000000;" title="Đen"></button>
+            </div>
+          </div>
+
+          <!-- Stroke / Outline Toggle & Width -->
+          <div class="form-group">
+            <div class="toggle-row">
+              <label for="toggle-stroke" class="form-label mb-0">Viền Đen Cổ Điển</label>
+              <label class="switch">
+                <input type="checkbox" id="toggle-stroke" checked>
+                <span class="slider-switch"></span>
+              </label>
+            </div>
+            <div class="stroke-width-group" id="stroke-width-group">
+              <div class="slider-header mt-2">
+                <span class="sub-label">Độ dày viền:</span>
+                <span class="sub-badge" id="badge-stroke-width">10px</span>
+              </div>
+              <input type="range" id="slider-stroke-width" min="2" max="22" value="10" step="1" class="range-slider">
+            </div>
+          </div>
+        </div>
+
+        <!-- Extra Useful Settings: Uppercase toggle -->
+        <div class="form-group pt-2 border-top">
+          <div class="toggle-row">
+            <div>
+              <span class="form-label mb-0">Tự động VIẾT HOA</span>
+              <p class="sub-hint">Meme chuẩn văn hóa cổ điển luôn viết hoa</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggle-uppercase" checked>
+              <span class="slider-switch"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>🌾 <strong>Meme Farm</strong> — Nông trại chế ảnh meme 100% chạy trên trình duyệt của bạn.</p>
+    <p class="footer-sub">Không gửi ảnh lên máy chủ • Không cần đăng ký • Hoạt động siêu mượt trên điện thoại & máy tính</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
