@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rust Window - by Jarvis</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #1a1a2e; }
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+</style>
+<link rel="modulepreload" href="/rust-window-demo-98e97226614ecff3.js" crossorigin="anonymous" integrity="sha384-d2EaMrLLneG4iF/dz43Mzk3WQI1sDus9lIjKJsSOJXgDGqkwJkZd1iSApHxeCEE3"><link rel="preload" href="/rust-window-demo-98e97226614ecff3_bg.wasm" crossorigin="anonymous" integrity="sha384-Kxxylz1x8WYqVTcWWaucRAeBVbjHE+Z4NFTZYXd0oWNzUEikDnVHjSlj6l5ofjM9" as="fetch" type="application/wasm"></head>
+<body>
+<canvas id="the_canvas_id"></canvas>
+
+<script type="module">
+import init, * as bindings from '/rust-window-demo-98e97226614ecff3.js';
+const wasm = await init({ module_or_path: '/rust-window-demo-98e97226614ecff3_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+</html>
