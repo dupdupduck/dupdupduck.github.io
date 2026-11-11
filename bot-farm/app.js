@@ -672,7 +672,9 @@
     requestBotMove();
   }
 
-  // 9. Khai Cuộc Open 4: thế tứ mở ở giữa bàn
+  // 9. Khai Cuộc Open 4 — theo vd của anh Kiệt (21:42 11/11):
+  // X ở tâm bàn, O đặt chéo cách 4 ô (xuống 1 hàng, sang phải 3 cột — đúng như sơ đồ anh vẽ).
+  // Tới lượt X đánh tiếp, mục tiêu tạo tứ mở (4 quân liền nhau, 2 đầu đều trống — chỉ 2 đầu mới đánh được).
   function actionOpen4() {
     if (moves.length > 0) {
       clearedBoardSnapshot = {
@@ -694,23 +696,24 @@
     winner = null;
     winningLine = null;
 
-    // Đặt 4 quân X ở hàng giữa (hàng 9, tính 0-indexed; tức hàng 10 theo 1-19)
-    // 4 quân X tại cột 8, 9, 10, 11 (2 đầu cột 7 và 12 đều trống)
+    // X ở tâm bàn (hàng 10, cột 10 — tính 1-19)
     const midRow = 9;
-    const cols = [8, 9, 10, 11];
+    const midCol = 9;
+    board[midRow][midCol] = 'X';
+    moves.push({ x: midCol, y: midRow, side: 'X' });
+    // O chéo cách 4 ô: xuống 1 hàng, sang phải 3 cột (Manhattan = 4)
+    const oRow = midRow + 1;
+    const oCol = midCol + 3;
+    board[oRow][oCol] = 'O';
+    moves.push({ x: oCol, y: oRow, side: 'O' });
 
-    cols.forEach(c => {
-      board[midRow][c] = 'X';
-      moves.push({ x: c, y: midRow, side: 'X' });
-    });
-
-    lastMove = { x: 11, y: midRow, side: 'X' };
-    currentTurn = 'O'; // Lượt kế tiếp là O
+    lastMove = { x: oCol, y: oRow, side: 'O' };
+    currentTurn = 'X'; // Lượt kế tiếp là X
 
     updateButtons();
     renderBoard();
     saveGameState();
-    showToast('Open 4: 4 quân X liền nhau, 2 đầu đều trống — chặn 1 đầu thì đầu kia vẫn thắng. Tới lượt O!');
+    showToast('Khai cuộc Open 4: X ở tâm, O cách 4 ô chéo. Tới lượt X — tạo tứ mở (4 quân liền, 2 đầu trống) là thắng.');
   }
 
   // Reset bàn cờ về trống theo thiết lập hiện tại
