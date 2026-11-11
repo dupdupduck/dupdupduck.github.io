@@ -200,22 +200,34 @@
           </div>
         </div>
 
-        <!-- Thanh công cụ 2 hàng (Mục 4) -->
+        <!-- Thanh công cụ gọn gàng, chia nhóm (Mục 4) -->
         <footer class="game-toolbar" id="toolbar">
-          <div class="toolbar-row row-1">
-            <button id="btn-new-page" class="tool-btn" title="Trang mới">Trang Mới</button>
-            <button id="btn-restore-new-page" class="tool-btn" disabled title="Khôi phục bàn vừa xóa">Khôi Phục Trang Mới</button>
-            <button id="btn-undo-all" class="tool-btn" disabled title="Lùi toàn bộ">《 Undo</button>
-            <button id="btn-redo-all" class="tool-btn" disabled title="Khôi phục toàn bộ">》 Redo</button>
-            <button id="btn-undo-one" class="tool-btn" disabled title="Lùi 1 nước">&lt; Lùi 1</button>
-            <button id="btn-redo-one" class="tool-btn" disabled title="Tiến 1 nước">&gt; Tiến 1</button>
+          <div class="toolbar-group">
+            <div class="toolbar-group-label">Ván đấu</div>
+            <div class="toolbar-row row-game">
+              <button id="btn-new-page" class="tool-btn" title="Trang mới: xóa trống bàn cờ"><span class="tool-icon">＋</span><span class="tool-label">Trang Mới</span></button>
+              <button id="btn-restore-new-page" class="tool-btn" disabled title="Khôi phục bàn vừa xóa"><span class="tool-icon">↺</span><span class="tool-label">Khôi Phục</span></button>
+              <button id="btn-open-4" class="tool-btn" title="Khai cuộc Open 4: 4 quân liền nhau, 2 đầu đều trống"><span class="tool-icon">♞</span><span class="tool-label">Open 4</span></button>
+            </div>
           </div>
 
-          <div class="toolbar-row row-2">
-            <button id="btn-move-mode" class="tool-btn" title="Chế độ di chuyển quân">Nước Đi</button>
-            <button id="btn-move-all" class="tool-btn" title="Di chuyển toàn bộ quân">ALL</button>
-            <button id="btn-open-4" class="tool-btn" title="Khai cuộc Tứ Thông ở giữa bàn">Khai Cuộc Open 4</button>
-            <button id="btn-play" class="tool-btn btn-play" title="Bot suy nghĩ rồi đánh tiếp">▶ Play</button>
+          <div class="toolbar-group">
+            <div class="toolbar-group-label">Hoàn tác</div>
+            <div class="toolbar-row row-undo">
+              <button id="btn-undo-all" class="tool-btn" disabled title="Lùi toàn bộ"><span class="tool-icon">《</span><span class="tool-label">Undo</span></button>
+              <button id="btn-redo-all" class="tool-btn" disabled title="Khôi phục toàn bộ"><span class="tool-icon">》</span><span class="tool-label">Redo</span></button>
+              <button id="btn-undo-one" class="tool-btn" disabled title="Lùi 1 nước"><span class="tool-icon">‹</span><span class="tool-label">Lùi 1</span></button>
+              <button id="btn-redo-one" class="tool-btn" disabled title="Tiến 1 nước"><span class="tool-icon">›</span><span class="tool-label">Tiến 1</span></button>
+            </div>
+          </div>
+
+          <div class="toolbar-group">
+            <div class="toolbar-group-label">Bot &amp; di chuyển</div>
+            <div class="toolbar-row row-bot">
+              <button id="btn-move-mode" class="tool-btn" title="Chế độ di chuyển quân"><span class="tool-icon">✥</span><span class="tool-label">Nước Đi</span></button>
+              <button id="btn-move-all" class="tool-btn" title="Di chuyển toàn bộ quân"><span class="tool-icon">▦</span><span class="tool-label">ALL</span></button>
+              <button id="btn-play" class="tool-btn btn-play" title="Bot suy nghĩ rồi đánh tiếp"><span class="tool-icon">▶</span><span class="tool-label">Play</span></button>
+            </div>
           </div>
         </footer>
       </div>

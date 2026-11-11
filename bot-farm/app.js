@@ -710,7 +710,7 @@
     updateButtons();
     renderBoard();
     saveGameState();
-    showToast('Đã xếp thế Khai Cuộc Open 4 (Tứ thông)');
+    showToast('Open 4: 4 quân X liền nhau, 2 đầu đều trống — chặn 1 đầu thì đầu kia vẫn thắng. Tới lượt O!');
   }
 
   // Reset bàn cờ về trống theo thiết lập hiện tại
