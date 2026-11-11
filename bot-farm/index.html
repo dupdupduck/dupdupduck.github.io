@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bot Farm — Cờ Caro 19x19</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    
+    <!-- MÀN HÌNH CHÍNH (3.1) -->
+    <section id="screen-home" class="screen screen-active">
+      <div class="home-wrapper">
+        <header class="home-header">
+          <div class="vip-badge">VIP BOT ARENA</div>
+          <h1 class="vip-title">BOT FARM</h1>
+          <p class="vip-subtitle">Cờ Caro 19x19 &bull; Engine Rapfi Siêu Cấp</p>
+        </header>
+
+        <div class="stats-card">
+          <div class="stats-label">THỐNG KÊ CHIẾN TÍCH</div>
+          <div class="stats-value" id="home-stats-text">Tổng Trận — Thắng: 0 | Thua: 0</div>
+        </div>
+
+        <nav class="home-actions">
+          <button id="btn-start-game" class="btn-vip btn-gold">
+            <span class="btn-icon">⚔️</span>
+            <span class="btn-text">Đấu Với Bot Farm</span>
+          </button>
+          <button id="btn-open-settings" class="btn-vip btn-secondary">
+            <span class="btn-icon">⚙️</span>
+            <span class="btn-text">Cài Đặt</span>
+          </button>
+        </nav>
+
+        <footer class="home-footer">
+          Gomoku Freestyle 19x19 &bull; Chuẩn thi đấu
+        </footer>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH CÀI ĐẶT (3.2) -->
+    <section id="screen-settings" class="screen">
+      <div class="settings-wrapper">
+        <header class="screen-header">
+          <button id="btn-settings-back" class="btn-back" title="Quay lại">
+            ‹ Quay Lại
+          </button>
+          <h2 class="header-title">CÀI ĐẶT</h2>
+          <div class="header-spacer"></div>
+        </header>
+
+        <div class="settings-content">
+          <!-- Độ khó (thời gian suy nghĩ) -->
+          <div class="setting-group">
+            <label class="setting-group-title">Độ khó (thời gian bot suy nghĩ)</label>
+            <div class="options-grid grid-4" id="difficulty-options">
+              <button class="opt-btn" data-diff="1000">Dễ 1s</button>
+              <button class="opt-btn active" data-diff="3000">Vừa 3s</button>
+              <button class="opt-btn" data-diff="5000">Khó 5s</button>
+              <button class="opt-btn" data-diff="10000">Cực khó 10s</button>
+            </div>
+          </div>
+
+          <!-- Chọn quân -->
+          <div class="setting-group">
+            <label class="setting-group-title">Chọn quân</label>
+            <div class="options-col" id="side-options">
+              <button class="opt-btn active" data-side="player_x">
+                <span class="side-badge badge-x">X</span> Người cầm X đi trước
+              </button>
+              <button class="opt-btn" data-side="player_o">
+                <span class="side-badge badge-o">O</span> Người cầm O đi trước
+              </button>
+              <button class="opt-btn" data-side="bot_first">
+                <span class="side-badge badge-bot">🤖</span> Bot đi trước
+              </button>
+            </div>
+          </div>
+
+          <!-- Các toggle Bật/Tắt -->
+          <div class="setting-group">
+            <label class="setting-group-title">Tùy chọn trải nghiệm</label>
+            <div class="toggle-list">
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <span class="toggle-name">Âm thanh</span>
+                  <span class="toggle-desc">Tiếng gõ quân và âm thanh trận đấu</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-sound" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <span class="toggle-name">Rung khi đánh cờ</span>
+                  <span class="toggle-desc">Rung nhẹ điện thoại khi đặt quân</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-vibrate" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <span class="toggle-name">Hiện tọa độ bàn cờ</span>
+                  <span class="toggle-desc">Hiển thị ký hiệu cột và hàng quanh mép</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-coords" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="toggle-item">
+                <div class="toggle-info">
+                  <span class="toggle-name">Hiện dấu nước đi cuối</span>
+                  <span class="toggle-desc">Đánh dấu nhỏ vị trí vừa đánh</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-last-move" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-actions">
+            <button id="btn-save-settings" class="btn-vip btn-gold">Xong & Lưu</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH BÀN CỜ (3.3 & 4) -->
+    <section id="screen-game" class="screen">
+      <div class="game-wrapper">
+        <!-- Top bar -->
+        <header class="game-header">
+          <button id="btn-game-home" class="btn-icon-pill" title="Màn hình chính">
+            🏠 Màn Chính
+          </button>
+          <div class="game-score-display" id="game-score-text">
+            Thắng: 0 | Thua: 0
+          </div>
+          <button id="btn-game-settings" class="btn-icon-pill" title="Cài đặt">
+            ⚙️ Cài Đặt
+          </button>
+        </header>
+
+        <!-- Trạng thái lượt đi & Bot suy nghĩ -->
+        <div class="game-status-bar">
+          <div class="turn-indicator" id="turn-indicator">
+            <span class="turn-label">Lượt đi:</span>
+            <span class="turn-symbol symbol-x" id="turn-symbol">X</span>
+          </div>
+
+          <div class="thinking-badge hidden" id="thinking-badge">
+            <span class="thinking-text">Bot Farm đang suy nghĩ</span>
+            <span class="thinking-dots">...</span>
+          </div>
+
+          <div class="engine-alert hidden" id="engine-alert"></div>
+        </div>
+
+        <!-- Thanh điều khiển Zoom -->
+        <div class="zoom-toolbar">
+          <span class="zoom-label">Thu phóng:</span>
+          <button id="btn-zoom-out" class="zoom-btn" title="Thu nhỏ">−</button>
+          <button id="btn-zoom-reset" class="zoom-btn zoom-btn-reset" title="Đặt lại 1x">1x</button>
+          <button id="btn-zoom-in" class="zoom-btn" title="Phóng to">+</button>
+          <span class="zoom-level" id="zoom-level-text">1.0x</span>
+        </div>
+
+        <!-- Bàn cờ Canvas Container -->
+        <div class="board-container" id="board-container">
+          <div class="board-viewport" id="board-viewport">
+            <canvas id="board-canvas" width="600" height="600"></canvas>
+          </div>
+        </div>
+
+        <!-- Cụm điều khiển di chuyển Nước Đi / ALL -->
+        <div class="move-pad-container hidden" id="move-pad">
+          <div class="move-pad-header">
+            <span class="move-pad-status" id="move-pad-status">Chế độ Di Chuyển: Chạm vào 1 quân để chọn</span>
+            <button id="btn-close-move-pad" class="btn-close-pad" title="Đóng chế độ di chuyển">✕ Đóng</button>
+          </div>
+          <div class="move-pad-controls">
+            <button class="dpad-btn dpad-up" id="btn-move-up" title="Lên">▲</button>
+            <div class="dpad-middle">
+              <button class="dpad-btn dpad-left" id="btn-move-left" title="Trái">◀</button>
+              <div class="dpad-center" id="dpad-center-label">MOVE</div>
+              <button class="dpad-btn dpad-right" id="btn-move-right" title="Phải">▶</button>
+            </div>
+            <button class="dpad-btn dpad-down" id="btn-move-down" title="Xuống">▼</button>
+          </div>
+        </div>
+
+        <!-- Thanh công cụ 2 hàng (Mục 4) -->
+        <footer class="game-toolbar" id="toolbar">
+          <div class="toolbar-row row-1">
+            <button id="btn-new-page" class="tool-btn" title="Trang mới">Trang Mới</button>
+            <button id="btn-restore-new-page" class="tool-btn" disabled title="Khôi phục bàn vừa xóa">Khôi Phục Trang Mới</button>
+            <button id="btn-undo-all" class="tool-btn" disabled title="Lùi toàn bộ">《 Undo</button>
+            <button id="btn-redo-all" class="tool-btn" disabled title="Khôi phục toàn bộ">》 Redo</button>
+            <button id="btn-undo-one" class="tool-btn" disabled title="Lùi 1 nước">&lt; Lùi 1</button>
+            <button id="btn-redo-one" class="tool-btn" disabled title="Tiến 1 nước">&gt; Tiến 1</button>
+          </div>
+
+          <div class="toolbar-row row-2">
+            <button id="btn-move-mode" class="tool-btn" title="Chế độ di chuyển quân">Nước Đi</button>
+            <button id="btn-move-all" class="tool-btn" title="Di chuyển toàn bộ quân">ALL</button>
+            <button id="btn-open-4" class="tool-btn" title="Khai cuộc Tứ Thông ở giữa bàn">Khai Cuộc Open 4</button>
+            <button id="btn-play" class="tool-btn btn-play" title="Bot suy nghĩ rồi đánh tiếp">▶ Play</button>
+          </div>
+        </footer>
+      </div>
+    </section>
+
+    <!-- MODAL KẾT THÚC VÁN (5) -->
+    <div class="modal-overlay hidden" id="modal-gameover">
+      <div class="modal-card">
+        <div class="modal-icon" id="modal-icon">🏆</div>
+        <h3 class="modal-title" id="modal-title">Người Thắng!</h3>
+        <p class="modal-desc" id="modal-desc">Bạn đã hạ gục Bot Farm bằng 5 quân liên tiếp.</p>
+        <div class="modal-stats" id="modal-stats">Tổng Trận — Thắng: 1 | Thua: 0</div>
+        <div class="modal-actions">
+          <button id="btn-play-again" class="btn-vip btn-gold">Chơi Lại</button>
+          <button id="btn-view-board" class="btn-vip btn-secondary">Xem Bàn Cờ</button>
+          <button id="btn-modal-home" class="btn-vip btn-dark">Về Màn Chính</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast hidden"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
