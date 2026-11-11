@@ -52,14 +52,16 @@
         </header>
 
         <div class="settings-content">
-          <!-- Độ khó (thời gian suy nghĩ) -->
+          <!-- Phạm vi (vùng engine xét nước đi) — thay cho chế độ/cấp độ -->
           <div class="setting-group">
-            <label class="setting-group-title">Độ khó (thời gian bot suy nghĩ)</label>
-            <div class="options-grid grid-4" id="difficulty-options">
-              <button class="opt-btn" data-diff="1000">Dễ 1s</button>
-              <button class="opt-btn active" data-diff="3000">Vừa 3s</button>
-              <button class="opt-btn" data-diff="5000">Khó 5s</button>
-              <button class="opt-btn" data-diff="10000">Cực khó 10s</button>
+            <label class="setting-group-title">Phạm vi (vùng engine xét nước đi)</label>
+            <div class="options-col" id="scope-options">
+              <button class="opt-btn" data-scope="0">Square2 — hẹp nhất, nhanh nhất</button>
+              <button class="opt-btn" data-scope="1">Square2 + Line3</button>
+              <button class="opt-btn" data-scope="2">Square3</button>
+              <button class="opt-btn active" data-scope="3">Square3 + Line4 (Khuyến nghị)</button>
+              <button class="opt-btn" data-scope="4">Square4</button>
+              <button class="opt-btn" data-scope="5">Toàn bàn cờ — mạnh nhất, chậm nhất</button>
             </div>
           </div>
 

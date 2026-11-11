@@ -17,9 +17,13 @@
     losses: 0
   };
 
-  // Cài đặt
+  // Cài đặt — Phạm vi thay cho chế độ/cấp độ (theo lệnh anh Kiệt 11/11):
+  // scope 0=Square2, 1=Square2+Line3, 2=Square3, 3=Square3+Line4, 4=Square4, 5=Toàn bàn cờ
+  // Gửi cho engine bằng lệnh INFO CAUTION_FACTOR (Rapfi command/gomocup.cpp).
+  // Time suy nghĩ dùng mặc định của engine, không chờ thêm.
+  const ENGINE_TIME_MS = 3000;
   let settings = {
-    difficulty: 3000,           // 1000, 3000, 5000, 10000 ms
+    scope: 3,                   // mặc định Square3 + Line4 (Khuyến nghị)
     sideSelection: 'player_x',  // 'player_x' | 'player_o' | 'bot_first'
     sound: true,
     vibrate: true,
@@ -37,6 +41,23 @@
   let winningLine = null;      // [{ x, y }, ...]
   let lastMove = null;         // { x, y, side }
   let clearedBoardSnapshot = null; // Snapshot lưu khi bấm Trang Mới hoặc Khai Cuộc
+
+  // Ô cấm của Khai Cuộc Open 4: ô màu đen nhìn thấy được nhưng không đánh được.
+  // Chỉ hiện sau khi đã đánh X và O của khai cuộc; chỉ đánh được BÊN NGOÀI vùng cấm.
+  let blockedCells = new Set(); // key "x,y"
+  function blockedKey(x, y) { return x + ',' + y; }
+  function isBlocked(x, y) { return blockedCells.has(blockedKey(x, y)); }
+  function buildOpen4BlockedCells() {
+    // Hình dấu + quanh tâm bàn (9,9): mỗi hướng 4 ô — dưới 4, ngang 4, trên 4
+    const s = new Set();
+    for (let d = 1; d <= 4; d++) {
+      s.add(blockedKey(9 + d, 9));
+      s.add(blockedKey(9 - d, 9));
+      s.add(blockedKey(9, 9 + d));
+      s.add(blockedKey(9, 9 - d));
+    }
+    return s;
+  }
 
   // Chế độ di chuyển Nước Đi & ALL
   let moveMode = false;
@@ -73,7 +94,7 @@
   // Settings Elements
   const btnSettingsBack = document.getElementById('btn-settings-back');
   const btnSaveSettings = document.getElementById('btn-save-settings');
-  const diffButtons = document.querySelectorAll('#difficulty-options .opt-btn');
+  const scopeButtons = document.querySelectorAll('#scope-options .opt-btn');
   const sideButtons = document.querySelectorAll('#side-options .opt-btn');
   const toggleSound = document.getElementById('toggle-sound');
   const toggleVibrate = document.getElementById('toggle-vibrate');
@@ -149,7 +170,7 @@
       const savedSettings = localStorage.getItem('bot_farm_settings');
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings);
-        if (parsed.difficulty) settings.difficulty = Number(parsed.difficulty);
+        if (typeof parsed.scope === 'number') settings.scope = Math.min(5, Math.max(0, parsed.scope | 0));
         if (parsed.sideSelection) settings.sideSelection = parsed.sideSelection;
         if (typeof parsed.sound === 'boolean') settings.sound = parsed.sound;
         if (typeof parsed.vibrate === 'boolean') settings.vibrate = parsed.vibrate;
@@ -172,6 +193,7 @@
           winningLine = parsed.winningLine || null;
           lastMove = parsed.lastMove || null;
           clearedBoardSnapshot = parsed.clearedBoardSnapshot || null;
+          blockedCells = new Set(Array.isArray(parsed.blockedCells) ? parsed.blockedCells : []);
         }
       }
     } catch (e) {}
@@ -204,7 +226,8 @@
         winner,
         winningLine,
         lastMove,
-        clearedBoardSnapshot
+        clearedBoardSnapshot,
+        blockedCells: [...blockedCells]
       };
       localStorage.setItem('bot_farm_saved_game', JSON.stringify(state));
     } catch (e) {}
@@ -218,8 +241,8 @@
   }
 
   function syncSettingsUI() {
-    diffButtons.forEach(btn => {
-      btn.classList.toggle('active', Number(btn.dataset.diff) === settings.difficulty);
+    scopeButtons.forEach(btn => {
+      btn.classList.toggle('active', Number(btn.dataset.scope) === settings.scope);
     });
     sideButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.side === settings.sideSelection);
@@ -266,7 +289,8 @@
           engineReady = true;
           hideEngineAlert();
           sendEngineCmd('START 19');
-          sendEngineCmd(`INFO timeout_turn ${settings.difficulty}`);
+          sendEngineCmd(`INFO timeout_turn ${ENGINE_TIME_MS}`);
+          sendEngineCmd(`INFO CAUTION_FACTOR ${settings.scope}`);
           sendEngineCmd('INFO timeout_match 100000');
           if (pendingBotMove) {
             pendingBotMove = false;
@@ -303,10 +327,53 @@
 
       setThinking(false);
 
+      // Bot nghĩ xong là đánh liền, không chờ hết time (không có delay ở đây).
       if (bx >= 0 && bx < BOARD_SIZE && by >= 0 && by < BOARD_SIZE && board[by][bx] === null && !gameOver) {
-        applyMove(bx, by, currentTurn, true);
+        if (isBlocked(bx, by)) {
+          // Engine chọn đúng ô cấm của Open 4 -> dùng nước dự phòng (không đánh vào ô cấm)
+          const fb = findFallbackMove(currentTurn);
+          if (fb) {
+            applyMove(fb.x, fb.y, currentTurn, true);
+            showToast('Bot tránh ô cấm, đánh nước dự phòng');
+          }
+        } else {
+          applyMove(bx, by, currentTurn, true);
+        }
       }
     }
+  }
+
+  // Nước dự phòng khi engine chọn trúng ô cấm: chọn ô trống (không cấm) tốt nhất
+  // theo nước đi dài nhất cho mình + chặn nước dài nhất của đối thủ.
+  function countRun(b, x, y, side, dx, dy) {
+    let n = 0;
+    for (const s of [1, -1]) {
+      let cx = x + dx * s, cy = y + dy * s;
+      while (cx >= 0 && cx < BOARD_SIZE && cy >= 0 && cy < BOARD_SIZE && b[cy][cx] === side) {
+        n++;
+        cx += dx * s;
+        cy += dy * s;
+      }
+    }
+    return n;
+  }
+  function findFallbackMove(side) {
+    const foe = side === 'X' ? 'O' : 'X';
+    const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+    let best = null, bestScore = -1;
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        if (board[y][x] !== null || isBlocked(x, y)) continue;
+        let myRun = 0, foeRun = 0;
+        for (const [dx, dy] of dirs) {
+          myRun = Math.max(myRun, 1 + countRun(board, x, y, side, dx, dy));
+          foeRun = Math.max(foeRun, 1 + countRun(board, x, y, foe, dx, dy));
+        }
+        const score = myRun * 10 + foeRun * 9 + (9 - Math.abs(x - 9) - Math.abs(y - 9)) * 0.05;
+        if (score > bestScore) { bestScore = score; best = { x, y }; }
+      }
+    }
+    return best;
   }
 
   function handleEngineError(err) {
@@ -475,7 +542,7 @@
   // 7. ĐẶT NƯỚC ĐI (APPLY MOVE)
   // ==========================================================================
   function applyMove(x, y, side, isFromBot) {
-    if (board[y][x] !== null || gameOver) return false;
+    if (board[y][x] !== null || gameOver || isBlocked(x, y)) return false;
 
     board[y][x] = side;
     moves.push({ x, y, side });
@@ -548,7 +615,8 @@
       gameOver,
       winner,
       winningLine: winningLine ? [...winningLine] : null,
-      lastMove: lastMove ? { ...lastMove } : null
+      lastMove: lastMove ? { ...lastMove } : null,
+      blockedCells: [...blockedCells]
     };
 
     resetBoardState();
@@ -567,6 +635,7 @@
     winner = clearedBoardSnapshot.winner;
     winningLine = clearedBoardSnapshot.winningLine ? [...clearedBoardSnapshot.winningLine] : null;
     lastMove = clearedBoardSnapshot.lastMove ? { ...clearedBoardSnapshot.lastMove } : null;
+    blockedCells = new Set(clearedBoardSnapshot.blockedCells || []);
 
     clearedBoardSnapshot = null;
 
@@ -672,9 +741,11 @@
     requestBotMove();
   }
 
-  // 9. Khai Cuộc Open 4 — theo vd của anh Kiệt (21:42 11/11):
-  // X ở tâm bàn, O đặt chéo cách 4 ô (xuống 1 hàng, sang phải 3 cột — đúng như sơ đồ anh vẽ).
-  // Tới lượt X đánh tiếp, mục tiêu tạo tứ mở (4 quân liền nhau, 2 đầu đều trống — chỉ 2 đầu mới đánh được).
+  // 9. Khai Cuộc Open 4 — theo vd + ảnh vẽ của anh Kiệt (21:42-22:08 11/11):
+  // - X ở tâm bàn, O đặt chéo cách 4 ô (xuống 1 hàng, sang phải 3 cột).
+  // - Khi đánh X O xong mới HIỆN vùng cấm: dấu + quanh tâm, mỗi hướng 4 ô
+  //   (dưới 4, ngang 4, trên 4) — các ô đó hiện MÀU ĐEN, nhìn thấy được nhưng
+  //   KHÔNG đánh được; chỉ đánh được BÊN NGOÀI vùng cấm. Tới lượt X đánh tiếp.
   function actionOpen4() {
     if (moves.length > 0) {
       clearedBoardSnapshot = {
@@ -685,7 +756,8 @@
         gameOver,
         winner,
         winningLine: winningLine ? [...winningLine] : null,
-        lastMove: lastMove ? { ...lastMove } : null
+        lastMove: lastMove ? { ...lastMove } : null,
+        blockedCells: [...blockedCells]
       };
     }
 
@@ -707,13 +779,16 @@
     board[oRow][oCol] = 'O';
     moves.push({ x: oCol, y: oRow, side: 'O' });
 
+    // Đánh X O xong mới hiện vùng cấm (ô đen)
+    blockedCells = buildOpen4BlockedCells();
+
     lastMove = { x: oCol, y: oRow, side: 'O' };
     currentTurn = 'X'; // Lượt kế tiếp là X
 
     updateButtons();
     renderBoard();
     saveGameState();
-    showToast('Khai cuộc Open 4: X ở tâm, O cách 4 ô chéo. Tới lượt X — tạo tứ mở (4 quân liền, 2 đầu trống) là thắng.');
+    showToast('Khai cuộc Open 4: X ở tâm, O cách 4 ô chéo. Ô đen là vùng cấm — chỉ đánh được bên ngoài. Tới lượt X!');
   }
 
   // Reset bàn cờ về trống theo thiết lập hiện tại
@@ -726,6 +801,7 @@
     winningLine = null;
     lastMove = null;
     selectedPiece = null;
+    blockedCells = new Set(); // Ván mới thường không có ô cấm
 
     if (settings.sideSelection === 'player_o') {
       currentTurn = 'O';
@@ -734,18 +810,17 @@
     }
 
     sendEngineCmd('START 19');
-    sendEngineCmd(`INFO timeout_turn ${settings.difficulty}`);
+    sendEngineCmd(`INFO timeout_turn ${ENGINE_TIME_MS}`);
+    sendEngineCmd(`INFO CAUTION_FACTOR ${settings.scope}`);
     sendEngineCmd('INFO timeout_match 100000');
 
     updateButtons();
     renderBoard();
     saveGameState();
 
-    // Nếu chọn "Bot đi trước", bot sẽ tự động đánh nước đầu tiên!
+    // Nếu chọn "Bot đi trước", bot sẽ tự động đánh nước đầu tiên (đánh liền, không chờ)
     if (settings.sideSelection === 'bot_first') {
-      setTimeout(() => {
-        requestBotMove();
-      }, 300);
+      requestBotMove();
     }
   }
 
@@ -820,6 +895,10 @@
       showToast('Ô đích đã có quân!');
       return;
     }
+    if (isBlocked(tx, ty)) {
+      showToast('Ô đen là vùng cấm, không di chuyển vào được!');
+      return;
+    }
 
     const side = board[sy][sx];
     board[sy][sx] = null;
@@ -862,12 +941,16 @@
       return;
     }
 
-    // Kiểm tra xem mọi ô đích có nằm trong bàn cờ không
+    // Kiểm tra xem mọi ô đích có nằm trong bàn cờ và không phải ô cấm không
     for (let i = 0; i < pieces.length; i++) {
       const nx = pieces[i].x + dx;
       const ny = pieces[i].y + dy;
       if (nx < 0 || nx >= BOARD_SIZE || ny < 0 || ny >= BOARD_SIZE) {
         showToast('Có quân bị chạm mép bàn cờ, không thể di chuyển!');
+        return;
+      }
+      if (isBlocked(nx, ny)) {
+        showToast('Có quân sẽ vào ô cấm, không thể di chuyển!');
         return;
       }
     }
@@ -967,6 +1050,23 @@
     ctx.strokeStyle = '#323a4d';
     ctx.lineWidth = 2.2;
     ctx.strokeRect(margin, margin, gridSpan, gridSpan);
+
+    // 2.5 Ô cấm của Khai Cuộc Open 4: ô màu đen nhìn thấy được nhưng không đánh được
+    // (tô nền sẫm + viền sáng để nhìn rõ trên bàn đen)
+    if (blockedCells.size > 0) {
+      blockedCells.forEach(key => {
+        const parts = key.split(',');
+        const bx = Number(parts[0]);
+        const by = Number(parts[1]);
+        const px = margin + bx * cellSize;
+        const py = margin + by * cellSize;
+        ctx.fillStyle = '#202634';
+        ctx.fillRect(px - cellSize / 2, py - cellSize / 2, cellSize, cellSize);
+        ctx.strokeStyle = '#6b7a94';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(px - cellSize / 2, py - cellSize / 2, cellSize, cellSize);
+      });
+    }
 
     // 3. Các điểm sao (Star points - Mục 3.3)
     // 8 điểm sao chuẩn + 1 điểm trung tâm to rõ tại (10, 10) tức index 9, 9
@@ -1187,8 +1287,8 @@
       return;
     }
 
-    // Chế độ chơi bình thường: đặt quân
-    if (board[row][col] === null && !gameOver && !isThinking) {
+    // Chế độ chơi bình thường: đặt quân (ô cấm không đánh được)
+    if (board[row][col] === null && !gameOver && !isThinking && !isBlocked(col, row)) {
       applyMove(col, row, currentTurn, false);
     }
   }
@@ -1423,16 +1523,16 @@
       showScreen(screenSettings);
     });
 
-    // Settings Controls
-    diffButtons.forEach(btn => {
+    // Settings Controls — Phạm vi thay cho chế độ/cấp độ
+    scopeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        diffButtons.forEach(b => b.classList.remove('active'));
+        scopeButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        settings.difficulty = Number(btn.dataset.diff);
+        settings.scope = Number(btn.dataset.scope);
         saveSettings();
-        // Cập nhật ngay tới engine nếu đã sẵn sàng (Mục 6)
+        // Cập nhật ngay tới engine nếu đã sẵn sàng (Rapfi: INFO CAUTION_FACTOR)
         if (engineReady) {
-          sendEngineCmd(`INFO timeout_turn ${settings.difficulty}`);
+          sendEngineCmd(`INFO CAUTION_FACTOR ${settings.scope}`);
         }
       });
     });
